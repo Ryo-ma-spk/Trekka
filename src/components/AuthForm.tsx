@@ -54,7 +54,7 @@ export function AuthForm() {
               }
             }
           }}
-          providers={['google', 'github']}
+          providers={[]}
           redirectTo={`${window.location.origin}/`}
           onlyThirdPartyProviders={false}
           showLinks={true}
