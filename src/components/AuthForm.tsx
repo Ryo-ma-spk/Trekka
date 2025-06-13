@@ -55,10 +55,16 @@ export function AuthForm() {
             }
           }}
           providers={['google', 'github']}
-          redirectTo={window.location.origin}
+          redirectTo={`${window.location.origin}/`}
           onlyThirdPartyProviders={false}
           showLinks={true}
           view="sign_in"
+          // OTP関連の追加設定
+          magicLink={true}
+          // デバッグ用のイベントハンドラー
+          onAuthStateChange={(event, session) => {
+            console.log('Auth UI event:', event, session?.user?.email);
+          }}
           localization={{
             variables: {
               sign_in: {

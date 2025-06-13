@@ -43,7 +43,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('🔐 Auth state changed:', event, {
+          email: session?.user?.email,
+          userId: session?.user?.id,
+          accessToken: session?.access_token ? 'present' : 'missing',
+          refreshToken: session?.refresh_token ? 'present' : 'missing',
+          expiresAt: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'unknown'
+        });
+        
+        // OTP関連の特別な処理
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('🔄 Token refreshed successfully');
+        } else if (event === 'SIGNED_IN') {
+          console.log('✅ User signed in successfully');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
+        } else if (event === 'PASSWORD_RECOVERY') {
+          console.log('🔐 Password recovery event detected');
+        }
+        
         setSession(session);
         setUser(session?.user || null);
         setLoading(false);
