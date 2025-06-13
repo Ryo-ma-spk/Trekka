@@ -388,9 +388,39 @@ function TodoApp() {
 
   // パスワードリセットモードの確認
   useEffect(() => {
-    if (user && localStorage.getItem('password_recovery_mode') === 'true') {
+    // URL parameters をチェック（password reset link からの直接アクセス）
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasRecoveryParams = urlParams.has('type') && urlParams.get('type') === 'recovery';
+    
+    if (hasRecoveryParams) {
+      console.log('🔐 Password recovery detected from URL parameters');
+      localStorage.setItem('password_recovery_mode', 'true');
+      setIsPasswordRecoveryMode(true);
+      // URL からパラメータを削除
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (user && localStorage.getItem('password_recovery_mode') === 'true') {
+      console.log('🔐 Password recovery detected from localStorage');
       setIsPasswordRecoveryMode(true);
     }
+  }, [user]);
+
+  // URL changes を監視してパスワードリセットパラメータをチェック
+  useEffect(() => {
+    const checkRecoveryMode = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasRecoveryParams = urlParams.has('type') && urlParams.get('type') === 'recovery';
+      
+      if (hasRecoveryParams && user) {
+        console.log('🔐 Password recovery detected from URL change');
+        localStorage.setItem('password_recovery_mode', 'true');
+        setIsPasswordRecoveryMode(true);
+        // URL からパラメータを削除
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    window.addEventListener('popstate', checkRecoveryMode);
+    return () => window.removeEventListener('popstate', checkRecoveryMode);
   }, [user]);
 
   // パスワード変更処理

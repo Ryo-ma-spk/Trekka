@@ -60,6 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('👋 User signed out');
         } else if (event === 'PASSWORD_RECOVERY') {
           console.log('🔐 Password recovery event detected');
+          localStorage.setItem('password_recovery_mode', 'true');
         }
         
         setSession(session);
