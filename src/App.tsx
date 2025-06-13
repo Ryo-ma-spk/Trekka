@@ -7,11 +7,15 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { AuthForm } from './components/AuthForm';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useTasks } from './hooks/useTasks';
+import { supabase } from './lib/supabase';
 import type { Task } from './types';
 import './App.css';
 
 function TodoApp() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const [isPasswordRecoveryMode, setIsPasswordRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { tasks, loading, error, setError, setTasks, fetchTasks, createTasks, updateTaskLabel, updateTaskLabelOptimistic, moveTaskToPosition, moveTaskToGroupPosition, reorderTasksInGroup, updateTask, deleteTask, getTaskGroups, reorderGroups, createEmptyLabel, renameLabel, deleteLabel } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -382,9 +386,91 @@ function TodoApp() {
     }
   };
 
+  // パスワードリセットモードの確認
+  useEffect(() => {
+    if (user && localStorage.getItem('password_recovery_mode') === 'true') {
+      setIsPasswordRecoveryMode(true);
+    }
+  }, [user]);
+
+  // パスワード変更処理
+  const handlePasswordUpdate = async () => {
+    if (newPassword !== confirmPassword) {
+      setError('パスワードが一致しません');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('パスワードは6文字以上で入力してください');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+
+      if (error) throw error;
+
+      localStorage.removeItem('password_recovery_mode');
+      setIsPasswordRecoveryMode(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      alert('パスワードが正常に更新されました');
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
   // 未認証の場合はログインフォーム表示
   if (!user) {
     return <AuthForm />;
+  }
+
+  // パスワード変更画面
+  if (isPasswordRecoveryMode) {
+    return (
+      <div className="app">
+        <div className="password-recovery-container">
+          <div className="password-recovery-card">
+            <h2>新しいパスワードを設定</h2>
+            <div className="password-form">
+              <input
+                type="password"
+                placeholder="新しいパスワード"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="password-input"
+              />
+              <input
+                type="password"
+                placeholder="新しいパスワード（確認）"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="password-input"
+              />
+              <button 
+                onClick={handlePasswordUpdate}
+                className="password-update-btn"
+                disabled={!newPassword || !confirmPassword}
+              >
+                パスワードを更新
+              </button>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('password_recovery_mode');
+                  setIsPasswordRecoveryMode(false);
+                }}
+                className="password-cancel-btn"
+              >
+                スキップ
+              </button>
+            </div>
+            {error && <div className="error-message">{error}</div>}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) return <div className="error">エラー: {error}</div>;
