@@ -13,7 +13,28 @@ import './App.css';
 
 function TodoApp() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const [isPasswordRecoveryMode, setIsPasswordRecoveryMode] = useState(false);
+  
+  // パスワードリセットモードを最初に初期化（URLパラメータから）
+  const [isPasswordRecoveryMode, setIsPasswordRecoveryMode] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasRecoveryParams = urlParams.has('type') && urlParams.get('type') === 'recovery';
+    const hasStorageFlag = localStorage.getItem('password_recovery_mode') === 'true';
+    
+    if (hasRecoveryParams) {
+      console.log('🔐 Initial password recovery detected from URL');
+      localStorage.setItem('password_recovery_mode', 'true');
+      // URL からパラメータを削除
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    }
+    
+    if (hasStorageFlag) {
+      console.log('🔐 Initial password recovery detected from localStorage');
+      return true;
+    }
+    
+    return false;
+  });
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const { tasks, loading, error, setError, setTasks, fetchTasks, createTasks, updateTaskLabel, updateTaskLabelOptimistic, moveTaskToPosition, moveTaskToGroupPosition, reorderTasksInGroup, updateTask, deleteTask, getTaskGroups, reorderGroups, createEmptyLabel, renameLabel, deleteLabel } = useTasks();
@@ -386,23 +407,36 @@ function TodoApp() {
     }
   };
 
-  // パスワードリセットモードの確認
+  // パスワードリセットモードの確認（一度だけ実行）
   useEffect(() => {
+    console.log('🔍 Checking password recovery mode:', {
+      user: user?.email,
+      url: window.location.href,
+      localStorage: localStorage.getItem('password_recovery_mode'),
+      currentMode: isPasswordRecoveryMode
+    });
+    
+    // すでにパスワードリセットモードの場合は何もしない
+    if (isPasswordRecoveryMode) {
+      console.log('🔐 Already in password recovery mode, skipping checks');
+      return;
+    }
+    
     // URL parameters をチェック（password reset link からの直接アクセス）
     const urlParams = new URLSearchParams(window.location.search);
     const hasRecoveryParams = urlParams.has('type') && urlParams.get('type') === 'recovery';
     
     if (hasRecoveryParams) {
-      console.log('🔐 Password recovery detected from URL parameters');
+      console.log('🔐 Password recovery detected from URL parameters - SETTING MODE');
       localStorage.setItem('password_recovery_mode', 'true');
       setIsPasswordRecoveryMode(true);
       // URL からパラメータを削除
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (user && localStorage.getItem('password_recovery_mode') === 'true') {
-      console.log('🔐 Password recovery detected from localStorage');
+      console.log('🔐 Password recovery detected from localStorage - SETTING MODE');
       setIsPasswordRecoveryMode(true);
     }
-  }, [user]);
+  }, [user, isPasswordRecoveryMode]);
 
   // URL changes を監視してパスワードリセットパラメータをチェック
   useEffect(() => {
@@ -452,13 +486,23 @@ function TodoApp() {
     }
   };
 
-  // 未認証の場合はログインフォーム表示
-  if (!user) {
-    return <AuthForm />;
-  }
-
-  // パスワード変更画面
+  // パスワード変更画面（ユーザーの有無に関係なく最優先で表示）
   if (isPasswordRecoveryMode) {
+    console.log('🔐 Rendering Password Recovery Screen');
+    // ユーザーがいない場合は認証待ち
+    if (!user) {
+      console.log('🔐 Password recovery mode but no user - waiting for auth');
+      return (
+        <div className="app">
+          <div className="password-recovery-container">
+            <div className="password-recovery-card">
+              <h2>認証を確認中...</h2>
+              <p>パスワードリセット処理を準備しています。</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="app">
         <div className="password-recovery-container">
@@ -501,6 +545,12 @@ function TodoApp() {
         </div>
       </div>
     );
+  }
+
+  // 未認証の場合はログインフォーム表示
+  if (!user) {
+    console.log('📱 Rendering AuthForm - no user');
+    return <AuthForm />;
   }
 
   if (error) return <div className="error">エラー: {error}</div>;

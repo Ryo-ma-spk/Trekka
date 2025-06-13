@@ -48,7 +48,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           userId: session?.user?.id,
           accessToken: session?.access_token ? 'present' : 'missing',
           refreshToken: session?.refresh_token ? 'present' : 'missing',
-          expiresAt: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'unknown'
+          expiresAt: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'unknown',
+          currentURL: window.location.href,
+          recoveryMode: localStorage.getItem('password_recovery_mode')
         });
         
         // OTP関連の特別な処理
