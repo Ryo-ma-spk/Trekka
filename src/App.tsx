@@ -16,6 +16,7 @@ function TodoApp() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [defaultLabel, setDefaultLabel] = useState<string>('');
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedGroup, setDraggedGroup] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -30,6 +31,7 @@ function TodoApp() {
       // Cmd/Ctrl + N で新しいタスク作成
       if ((event.metaKey || event.ctrlKey) && event.key === 'n') {
         event.preventDefault();
+        setDefaultLabel('');
         setIsModalOpen(true);
       }
       // Escape でモーダルを閉じる
@@ -37,6 +39,7 @@ function TodoApp() {
         setIsModalOpen(false);
         setIsEditModalOpen(false);
         setEditingTask(null);
+        setDefaultLabel('');
       }
     };
 
@@ -358,6 +361,27 @@ function TodoApp() {
     }
   };
 
+  const handleAddTaskFromGroup = (groupLabel: string) => {
+    setDefaultLabel(groupLabel);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateTaskDirect = async (title: string, label: string, startDate: Date, endDate: Date) => {
+    try {
+      const taskData = {
+        title: title.trim(),
+        label: label,
+        startDate: startDate,
+        endDate: endDate,
+      };
+      
+      await createTasks([taskData]);
+    } catch (error) {
+      console.error('❌ Direct task creation error:', error);
+      setError('タスクの作成でエラーが発生しました');
+    }
+  };
+
   // 未認証の場合はログインフォーム表示
   if (!user) {
     return <AuthForm />;
@@ -378,7 +402,10 @@ function TodoApp() {
             <div className="header-actions">
               <button 
                 className="header-btn header-btn-task"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  setDefaultLabel('');
+                  setIsModalOpen(true);
+                }}
                 title="新しいタスクを作成"
               >
                 <Plus size={18} />
@@ -420,6 +447,8 @@ function TodoApp() {
               onDeleteTask={handleDeleteTask}
               onRenameGroup={handleRenameGroup}
               onDeleteGroup={handleDeleteLabel}
+              onAddTask={handleAddTaskFromGroup}
+              onCreateTaskDirect={handleCreateTaskDirect}
               onMouseDown={handleMouseDown}
               onGroupMouseDown={handleGroupMouseDown}
               draggedTask={draggedTask}
@@ -488,8 +517,12 @@ function TodoApp() {
 
       <TaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setDefaultLabel('');
+        }}
         onSubmit={createTasks}
+        defaultLabel={defaultLabel}
       />
 
       <EditTaskModal

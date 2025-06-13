@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { X, Plus, Trash2 } from 'lucide-react';
 import type { TaskFormData } from '../types';
@@ -14,9 +14,10 @@ interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (tasks: TaskFormData[]) => void;
+  defaultLabel?: string;
 }
 
-export function TaskModal({ isOpen, onClose, onSubmit }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '' }: TaskModalProps) {
   const [tasks, setTasks] = useState<TaskFormData[]>([
     {
       title: '',
@@ -26,6 +27,17 @@ export function TaskModal({ isOpen, onClose, onSubmit }: TaskModalProps) {
     },
   ]);
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+
+  // defaultLabelが変更された時、最初のタスクのラベルを更新
+  useEffect(() => {
+    if (isOpen && defaultLabel) {
+      setTasks(prevTasks => 
+        prevTasks.map((task, index) => 
+          index === 0 ? { ...task, label: defaultLabel } : task
+        )
+      );
+    }
+  }, [isOpen, defaultLabel]);
 
   const addTask = () => {
     setTasks([

@@ -725,7 +725,7 @@ body {
   opacity: 1;
 }
 
-.group-edit-trigger, .group-delete-trigger {
+.group-add-task-trigger, .group-edit-trigger, .group-delete-trigger {
   background: none;
   border: none;
   color: #8c9bab;
@@ -736,6 +736,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.group-add-task-trigger:hover {
+  background: rgba(67, 154, 244, 0.08);
+  color: #1976d2;
 }
 
 .group-edit-trigger:hover {
@@ -913,6 +918,118 @@ body {
   font-weight: 500;
   margin: 0;
   text-align: center;
+}
+
+/* インライン入力専用のスタイル */
+.inline-task-input {
+  animation: fadeInUp 0.2s ease-out;
+  margin-top: 0.5rem;
+  cursor: default;
+}
+
+.inline-task-input .task-actions {
+  opacity: 1;
+}
+
+.inline-task-title-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a202c;
+  outline: none;
+  resize: none;
+  line-height: 1.3;
+  font-family: inherit;
+  margin: 0;
+}
+
+.inline-task-title-input::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
+}
+
+.inline-period-input {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: #6b778c;
+  outline: none;
+  font-family: inherit;
+  font-weight: 500;
+  width: 140px;
+  margin-left: 0.25rem;
+}
+
+.inline-period-input:focus {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin-left: calc(0.25rem - 3px);
+  color: #1a202c;
+}
+
+.inline-date-container {
+  position: relative;
+}
+
+.inline-datepicker-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.75rem;
+  z-index: 1000;
+  min-width: 200px;
+  margin-top: 4px;
+}
+
+.datepicker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.datepicker-row:last-child {
+  margin-bottom: 0;
+}
+
+.datepicker-row label {
+  font-size: 11px;
+  color: #6b778c;
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.popup-date-picker {
+  border: 1px solid rgba(102, 126, 234, 0.25);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 11px;
+  color: #1a202c;
+  outline: none;
+  flex: 1;
+}
+
+.popup-date-picker:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .task-card {
