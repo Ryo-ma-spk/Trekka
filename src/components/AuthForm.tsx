@@ -61,10 +61,6 @@ export function AuthForm() {
           view="sign_in"
           // OTP関連の追加設定
           magicLink={true}
-          // デバッグ用のイベントハンドラー
-          onAuthStateChange={(event, session) => {
-            console.log('Auth UI event:', event, session?.user?.email);
-          }}
           localization={{
             variables: {
               sign_in: {
