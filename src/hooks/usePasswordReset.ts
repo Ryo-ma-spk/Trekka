@@ -8,17 +8,32 @@ export function usePasswordReset() {
   useEffect(() => {
     const checkPasswordResetSession = async () => {
       try {
+        console.log('🔍 Full URL analysis:', {
+          fullURL: window.location.href,
+          hash: window.location.hash,
+          search: window.location.search,
+          pathname: window.location.pathname
+        });
+
         // URLのハッシュフラグメントをチェック
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const type = hashParams.get('type');
 
+        // URLクエリパラメータもチェック
+        const searchParams = new URLSearchParams(window.location.search);
+        const searchType = searchParams.get('type');
+        const token = searchParams.get('token');
+
         console.log('🔍 Checking password reset session:', {
-          type,
+          hashType: type,
+          searchType: searchType,
           hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
-          fullHash: window.location.hash
+          hasToken: !!token,
+          fullHash: window.location.hash,
+          fullSearch: window.location.search
         });
 
         // パスワードリセット用のトークンかどうかをチェック
@@ -41,6 +56,18 @@ export function usePasswordReset() {
           
           // URLのハッシュをクリア
           window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (searchType === 'recovery' && token) {
+          // クエリパラメータベースのパスワードリセット検出
+          console.log('🔐 Password reset detected via query parameters');
+          setIsPasswordResetMode(true);
+          
+          // URLのクエリパラメータをクリア
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (localStorage.getItem('debug_password_reset') === 'true') {
+          // デバッグ用のパスワードリセットモード
+          console.log('🔐 Debug password reset mode activated');
+          localStorage.removeItem('debug_password_reset');
+          setIsPasswordResetMode(true);
         } else {
           // 通常のセッション確認
           const { data: { session } } = await supabase.auth.getSession();

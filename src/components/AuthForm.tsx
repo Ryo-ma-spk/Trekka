@@ -11,6 +11,29 @@ export function AuthForm() {
           <p>ログインしてタスク管理を始めましょう</p>
         </div>
         
+        {/* デバッグ用：パスワードリセットテストボタン */}
+        <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f0f0f0', borderRadius: '8px' }}>
+          <p style={{ fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>デバッグ用:</p>
+          <button 
+            onClick={() => {
+              console.log('🔐 Manual password reset mode trigger');
+              localStorage.setItem('debug_password_reset', 'true');
+              window.location.reload();
+            }}
+            style={{ 
+              padding: '0.5rem 1rem', 
+              background: '#667eea', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px', 
+              fontSize: '0.8rem',
+              cursor: 'pointer'
+            }}
+          >
+            パスワードリセット画面をテスト
+          </button>
+        </div>
+
         <Auth
           supabaseClient={supabase}
           appearance={{
