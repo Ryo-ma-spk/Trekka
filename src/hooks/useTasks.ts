@@ -24,6 +24,7 @@ export function useTasks() {
 
     try {
       setLoading(true);
+      console.log('🔍 Fetching tasks for user:', user.id);
       
       // user_id列が存在するかチェック
       const { data, error } = await supabase
@@ -35,6 +36,7 @@ export function useTasks() {
       let tasksData = [];
       
       if (error) {
+        console.log('⚠️ Tasks fetch error:', error);
         // user_id列が存在しない場合は全件取得
         if (error.message.includes('user_id')) {
           console.log('⚠️ user_id column does not exist, fetching all tasks');
@@ -43,7 +45,10 @@ export function useTasks() {
             .select('*')
             .order('created_at', { ascending: true });
           
-          if (allError) throw allError;
+          if (allError) {
+            console.log('❌ All tasks fetch error:', allError);
+            throw allError;
+          }
           tasksData = allData || [];
         } else {
           throw error;
@@ -52,6 +57,7 @@ export function useTasks() {
         tasksData = data || [];
       }
 
+      console.log('✅ Tasks loaded:', tasksData.length);
       setTasks(tasksData);
 
       // グループ順序を取得または初期化（ユーザー別）
@@ -67,6 +73,7 @@ export function useTasks() {
         setGroupOrder(labels);
       }
     } catch (err) {
+      console.log('❌ fetchTasks error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

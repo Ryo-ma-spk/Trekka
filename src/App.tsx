@@ -15,6 +15,40 @@ import "./App.css";
 function TodoApp() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isPasswordResetMode, isChecking, completePasswordReset } = usePasswordReset();
+  
+  console.log('🔍 TodoApp render:', {
+    user: user?.email,
+    authLoading,
+    isPasswordResetMode,
+    isChecking
+  });
+  
+  // Reactのルールに従い、フックは最上部で呼ぶ
+  const {
+    tasks,
+    loading,
+    error,
+    setError,
+    setTasks,
+    fetchTasks,
+    createTasks,
+    moveTaskToGroupPosition,
+    reorderTasksInGroup,
+    updateTask,
+    deleteTask,
+    getTaskGroups,
+    reorderGroups,
+    createEmptyLabel,
+    renameLabel,
+    deleteLabel,
+  } = useTasks();
+
+  console.log('🔍 Tasks state:', {
+    loading,
+    error,
+    tasksCount: tasks.length,
+    taskGroups: getTaskGroups().length
+  });
 
   // 初期化中の表示
   if (authLoading || isChecking) {
@@ -22,6 +56,17 @@ function TodoApp() {
       <div className="app">
         <div className="loading">
           認証状態を確認中...
+        </div>
+      </div>
+    );
+  }
+
+  // タスク読み込み中の表示（認証済みユーザー用）
+  if (user && loading) {
+    return (
+      <div className="app">
+        <div className="loading">
+          タスクを読み込み中...
         </div>
       </div>
     );
@@ -41,25 +86,6 @@ function TodoApp() {
   if (!user) {
     return <AuthForm />;
   }
-
-  // メインアプリケーション（認証済み）
-  const {
-    tasks,
-    error,
-    setError,
-    setTasks,
-    fetchTasks,
-    createTasks,
-    moveTaskToGroupPosition,
-    reorderTasksInGroup,
-    updateTask,
-    deleteTask,
-    getTaskGroups,
-    reorderGroups,
-    createEmptyLabel,
-    renameLabel,
-    deleteLabel,
-  } = useTasks();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
