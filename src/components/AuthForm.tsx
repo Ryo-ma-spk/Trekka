@@ -104,7 +104,7 @@ export function AuthForm() {
                 email_input_placeholder: 'your@email.com',
                 button_label: 'パスワードリセットメールを送信',
                 loading_button_label: 'パスワードリセットメールを送信',
-                link_text: 'パスワードをお忘れですか？',
+                link_text: 'パスワードを忘れた・変更したい方はこちら',
                 confirmation_text: 'パスワードリセット用のメールを送信しました。メールをご確認ください。',
                 email_address_invalid: 'メールアドレスの形式が正しくありません',
                 email_not_confirmed: 'メールアドレスの確認が必要です',
