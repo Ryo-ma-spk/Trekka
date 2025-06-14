@@ -13,8 +13,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     // トークンの持続
     persistSession: true,
-    // セッション検知の詳細設定
-    detectSessionInUrl: true,
+    // セッション検知の詳細設定（パスワードリセット制御のため無効化）
+    detectSessionInUrl: false,
     // 開発環境でのフローの改善
     flowType: 'pkce'
   }

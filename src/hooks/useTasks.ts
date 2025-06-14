@@ -6,7 +6,6 @@ import type { Task, TaskGroup, TaskFormData } from '../types';
 export function useTasks() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [groupOrder, setGroupOrder] = useState<string[]>([]);
 
@@ -18,12 +17,10 @@ export function useTasks() {
 
   const fetchTasks = async () => {
     if (!user) {
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       console.log('🔍 Fetching tasks for user:', user.id);
       
       // user_id列が存在するかチェック
@@ -76,7 +73,7 @@ export function useTasks() {
       console.log('❌ fetchTasks error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false);
+      // Loading state removed
     }
   };
 
@@ -515,7 +512,6 @@ export function useTasks() {
 
   return {
     tasks,
-    loading,
     error,
     setError,
     setTasks,

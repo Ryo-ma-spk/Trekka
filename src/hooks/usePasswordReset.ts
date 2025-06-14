@@ -4,108 +4,95 @@ import { supabase } from '../lib/supabase';
 export function usePasswordReset() {
   const [isPasswordResetMode, setIsPasswordResetMode] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [recoveryTokens, setRecoveryTokens] = useState<{access_token: string, refresh_token: string} | null>(null);
 
   useEffect(() => {
     const checkPasswordResetSession = async () => {
       try {
-        console.log('🔍 Full URL analysis:', {
-          fullURL: window.location.href,
-          hash: window.location.hash,
-          search: window.location.search,
-          pathname: window.location.pathname
-        });
+        console.log('🔍 URL ANALYSIS:');
+        console.log('URL:', window.location.href);
+        console.log('Hash:', window.location.hash);
+        console.log('Search:', window.location.search);
 
-        // URLのハッシュフラグメントをチェック
+        // URLのハッシュとクエリパラメータをチェック
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        // 全てのパラメータをログ出力
+        console.log('🔍 Hash params:', Object.fromEntries(hashParams.entries()));
+        console.log('🔍 Search params:', Object.fromEntries(searchParams.entries()));
+
+        // 可能性のあるパスワードリセット検出パターン
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type');
+        const hashType = hashParams.get('type');
+        const code = searchParams.get('code');
+        
+        console.log('🔍 DETECTION RESULTS:');
+        console.log('- access_token:', !!accessToken);
+        console.log('- refresh_token:', !!refreshToken);
+        console.log('- type:', hashType);
+        console.log('- code:', !!code);
 
-        // URLクエリパラメータもチェック
-        const searchParams = new URLSearchParams(window.location.search);
-        const searchType = searchParams.get('type');
-        const token = searchParams.get('token');
+        // パスワードリセット検出の優先順位
+        let resetDetected = false;
+        let tokens = null;
 
-        console.log('🔍 Checking password reset session:', {
-          hashType: type,
-          searchType: searchType,
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken,
-          hasToken: !!token,
-          fullHash: window.location.hash,
-          fullSearch: window.location.search
-        });
-
-        // パスワードリセット用のトークンかどうかをチェック
-        if (type === 'recovery' && accessToken && refreshToken) {
-          console.log('🔐 Password reset session detected via URL hash');
-          
-          // Supabaseセッションを設定
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken
-          });
-
-          if (error) {
-            console.error('❌ Failed to set session:', error);
-            throw error;
+        // 1. ハッシュベースのrecoveryトークン（最優先）
+        if (hashType === 'recovery' && accessToken && refreshToken) {
+          console.log('✅ DETECTED: Hash-based recovery tokens');
+          tokens = { access_token: accessToken, refresh_token: refreshToken };
+          resetDetected = true;
+        }
+        // 2. PKCEコードが存在する場合
+        else if (code) {
+          console.log('✅ DETECTED: PKCE code - attempting to exchange');
+          try {
+            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+            if (!error && data.session) {
+              console.log('✅ PKCE session established - assuming password reset');
+              tokens = {
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token || ''
+              };
+              resetDetected = true;
+            }
+          } catch (error) {
+            console.error('❌ PKCE exchange failed:', error);
           }
+        }
 
-          console.log('✅ Password reset session established');
+        // パスワードリセットモードの設定
+        if (resetDetected && tokens) {
+          setRecoveryTokens(tokens);
           setIsPasswordResetMode(true);
+          console.log('🔐 PASSWORD RESET MODE ACTIVATED');
           
-          // URLのハッシュをクリア
+          // URLをクリア
           window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (searchType === 'recovery' && token) {
-          // クエリパラメータベースのパスワードリセット検出
-          console.log('🔐 Password reset detected via query parameters');
-          setIsPasswordResetMode(true);
-          
-          // URLのクエリパラメータをクリア
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (localStorage.getItem('debug_password_reset') === 'true') {
-          // デバッグ用のパスワードリセットモード
-          console.log('🔐 Debug password reset mode activated');
-          localStorage.removeItem('debug_password_reset');
-          setIsPasswordResetMode(true);
         } else {
-          // 通常のセッション確認
-          const { data: { session } } = await supabase.auth.getSession();
-          console.log('🔍 Regular session check:', !!session);
+          console.log('ℹ️ No password reset detected - normal flow');
         }
       } catch (error) {
-        console.error('❌ Error checking password reset session:', error);
+        console.error('❌ Error in password reset check:', error);
       } finally {
         setIsChecking(false);
       }
     };
 
     checkPasswordResetSession();
-
-    // 認証状態変更の監視
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔐 Auth state change in password reset hook:', event);
-        
-        if (event === 'PASSWORD_RECOVERY') {
-          console.log('🔐 PASSWORD_RECOVERY event detected');
-          setIsPasswordResetMode(true);
-        } else if (event === 'SIGNED_OUT') {
-          setIsPasswordResetMode(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const completePasswordReset = () => {
+    console.log('🔐 Completing password reset');
     setIsPasswordResetMode(false);
+    setRecoveryTokens(null);
   };
 
   return {
     isPasswordResetMode,
     isChecking,
-    completePasswordReset
+    completePasswordReset,
+    recoveryTokens
   };
 }

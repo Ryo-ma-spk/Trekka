@@ -11,28 +11,6 @@ export function AuthForm() {
           <p>ログインしてタスク管理を始めましょう</p>
         </div>
         
-        {/* デバッグ用：パスワードリセットテストボタン */}
-        <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f0f0f0', borderRadius: '8px' }}>
-          <p style={{ fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>デバッグ用:</p>
-          <button 
-            onClick={() => {
-              console.log('🔐 Manual password reset mode trigger');
-              localStorage.setItem('debug_password_reset', 'true');
-              window.location.reload();
-            }}
-            style={{ 
-              padding: '0.5rem 1rem', 
-              background: '#667eea', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px', 
-              fontSize: '0.8rem',
-              cursor: 'pointer'
-            }}
-          >
-            パスワードリセット画面をテスト
-          </button>
-        </div>
 
         <Auth
           supabaseClient={supabase}
@@ -82,8 +60,8 @@ export function AuthForm() {
           onlyThirdPartyProviders={false}
           showLinks={true}
           view="sign_in"
-          // OTP関連の追加設定
-          magicLink={true}
+          // MagicLink無効化
+          magicLink={false}
           localization={{
             variables: {
               sign_in: {
@@ -92,9 +70,16 @@ export function AuthForm() {
                 email_input_placeholder: 'your@email.com',
                 password_input_placeholder: 'パスワードを入力',
                 button_label: 'ログイン',
-                loading_button_label: 'ログイン中...',
+                loading_button_label: 'ログイン',
                 social_provider_text: '{{provider}} でログイン',
                 link_text: 'アカウントをお持ちの方はこちら',
+                email_address_invalid: 'メールアドレスの形式が正しくありません',
+                password_is_required: 'パスワードを入力してください',
+                email_not_confirmed: 'メールアドレスの確認が必要です',
+                invalid_credentials: 'メールアドレスまたはパスワードが間違っています',
+                too_many_requests: 'しばらく時間をおいてから再度お試しください',
+                weak_password: 'パスワードが弱すぎます',
+                signup_disabled: 'アカウント作成が無効になっています',
               },
               sign_up: {
                 email_label: 'メールアドレス',
@@ -102,17 +87,27 @@ export function AuthForm() {
                 email_input_placeholder: 'your@email.com',
                 password_input_placeholder: 'パスワードを入力',
                 button_label: 'アカウント作成',
-                loading_button_label: 'アカウント作成中...',
+                loading_button_label: 'アカウント作成',
                 social_provider_text: '{{provider}} でアカウント作成',
                 link_text: 'アカウントをお持ちでない方はこちら',
+                email_address_invalid: 'メールアドレスの形式が正しくありません',
+                password_is_required: 'パスワードを入力してください',
+                email_not_confirmed: 'メールアドレスの確認が必要です',
+                weak_password: 'パスワードは6文字以上で入力してください',
+                signup_disabled: 'アカウント作成が無効になっています',
+                email_address_not_authorized: 'このメールアドレスは許可されていません',
+                user_already_registered: 'このメールアドレスは既に登録済みです',
               },
               forgotten_password: {
                 email_label: 'メールアドレス',
                 password_label: 'パスワード',
                 email_input_placeholder: 'your@email.com',
-                button_label: 'パスワードリセット',
-                loading_button_label: '送信中...',
+                button_label: 'パスワードリセットメールを送信',
+                loading_button_label: 'パスワードリセットメールを送信',
                 link_text: 'パスワードをお忘れですか？',
+                confirmation_text: 'パスワードリセット用のメールを送信しました。メールをご確認ください。',
+                email_address_invalid: 'メールアドレスの形式が正しくありません',
+                email_not_confirmed: 'メールアドレスの確認が必要です',
               },
             },
           }}

@@ -14,7 +14,7 @@ import "./App.css";
 function TodoApp() {
   // *** すべてのフックを最上部で呼ぶ（Reactのルール） ***
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isPasswordResetMode, isChecking, completePasswordReset } = usePasswordReset();
+  const { isPasswordResetMode, isChecking, completePasswordReset, recoveryTokens } = usePasswordReset();
   
   // useState フック
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +32,6 @@ function TodoApp() {
   // カスタムフック
   const {
     tasks,
-    loading,
     error,
     setError,
     setTasks,
@@ -270,44 +269,24 @@ function TodoApp() {
   }, [isDragging, draggedTask, isGroupDragging, draggedGroup, tasks, getTaskGroups, setError, fetchTasks, setTasks, reorderTasksInGroup, moveTaskToGroupPosition]);
 
   // *** この後に条件分岐 ***
-  console.log('🔍 TodoApp render:', {
-    user: user?.email,
-    authLoading,
-    isPasswordResetMode,
-    isChecking,
-    loading,
-    error,
-    tasksCount: tasks.length
-  });
+  console.log('🔍 TodoApp render decision tree:');
+  console.log('User:', user?.email);
+  console.log('Auth loading:', authLoading);
+  console.log('Password reset mode:', isPasswordResetMode);
+  console.log('Is checking:', isChecking);
+  console.log('Will show password reset:', isPasswordResetMode);
+  console.log('Will show auth form:', !isPasswordResetMode && !user);
+  console.log('Will show main app:', !isPasswordResetMode && !!user);
 
-  // 初期化中の表示
-  if (authLoading || isChecking) {
-    return (
-      <div className="app">
-        <div className="loading">
-          認証状態を確認中...
-        </div>
-      </div>
-    );
-  }
 
-  // タスク読み込み中の表示（認証済みユーザー用）
-  if (user && loading) {
-    return (
-      <div className="app">
-        <div className="loading">
-          タスクを読み込み中...
-        </div>
-      </div>
-    );
-  }
-
-  // パスワードリセットモード
+  // パスワードリセットモード（ユーザー認証状態に関わらず優先）
   if (isPasswordResetMode) {
+    console.log('🔐 Rendering PasswordReset component');
     return (
       <PasswordReset 
         onComplete={completePasswordReset}
         onCancel={completePasswordReset}
+        recoveryTokens={recoveryTokens}
       />
     );
   }

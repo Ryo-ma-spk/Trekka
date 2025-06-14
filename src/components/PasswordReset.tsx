@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase';
 interface PasswordResetProps {
   onComplete: () => void;
   onCancel: () => void;
+  recoveryTokens?: {access_token: string, refresh_token: string} | null;
 }
 
-export function PasswordReset({ onComplete, onCancel }: PasswordResetProps) {
+export function PasswordReset({ onComplete, onCancel, recoveryTokens }: PasswordResetProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,19 +24,36 @@ export function PasswordReset({ onComplete, onCancel }: PasswordResetProps) {
       return;
     }
 
+    if (!recoveryTokens) {
+      setError('リカバリートークンが見つかりません');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.updateUser({ 
+      // まずリカバリートークンでセッションを設定
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: recoveryTokens.access_token,
+        refresh_token: recoveryTokens.refresh_token
+      });
+
+      if (sessionError) throw sessionError;
+
+      // セッション設定後にパスワードを更新
+      const { error: updateError } = await supabase.auth.updateUser({ 
         password: newPassword 
       });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      alert('パスワードが正常に更新されました');
+      // パスワード更新完了後、サインアウトしてログインページに遷移
+      await supabase.auth.signOut();
+      alert('パスワードが正常に更新されました。新しいパスワードでログインしてください。');
       onComplete();
     } catch (error: any) {
+      console.error('Password update error:', error);
       setError(error.message || 'パスワードの更新に失敗しました');
     } finally {
       setLoading(false);
@@ -69,7 +87,7 @@ export function PasswordReset({ onComplete, onCancel }: PasswordResetProps) {
               className="password-update-btn"
               disabled={!newPassword || !confirmPassword || loading}
             >
-              {loading ? 'パスワードを更新中...' : 'パスワードを更新'}
+              パスワードを更新
             </button>
             <button 
               onClick={onCancel}
