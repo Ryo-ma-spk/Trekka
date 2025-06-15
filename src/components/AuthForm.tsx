@@ -130,6 +130,7 @@ export function AuthForm() {
                 loading_button_label: 'アカウント作成',
                 social_provider_text: '{{provider}} でアカウント作成',
                 link_text: 'アカウントをお持ちでない方はこちら',
+                confirmation_text: '確認メールを送信しました。メールをご確認ください。',
                 email_address_invalid: 'メールアドレスの形式が正しくありません',
                 password_is_required: 'パスワードを入力してください',
                 email_not_confirmed: 'メールアドレスの確認が必要です',
