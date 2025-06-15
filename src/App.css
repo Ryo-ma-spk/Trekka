@@ -846,20 +846,22 @@ body {
 }
 
 .group-title-edit {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  width: 100%;
+  max-width: none;
 }
 
 .group-edit-input-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .group-title-input {
-  flex: 1;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
   padding: 0.5rem;
   border: 2px solid #667eea;
   border-radius: 6px;
@@ -869,6 +871,8 @@ body {
   color: #172b4d;
   outline: none;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .group-title-input.error {
@@ -1576,6 +1580,110 @@ body {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
   margin: 0 !important;
+}
+
+/* TaskModal - シンプルデザイン */
+.common-settings {
+  padding: 20px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tasks-section {
+  padding: 20px;
+  background: white;
+}
+
+.tasks-section h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-task-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.add-task-btn:hover {
+  background: #0056b3;
+}
+
+.add-task-btn:focus {
+  outline: none;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.task-number {
+  color: white;
+  font-size: 14px;
+  min-width: 20px;
+}
+
+.task-input-container {
+  flex: 1;
+  position: relative;
+}
+
+.task-input-container input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 0.875rem 32px 0.875rem 0.875rem;
+  width: 100%;
+  background: white;
+}
+
+.task-input-container input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.remove-task-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-task-btn:hover {
+  transform: translateY(-50%);
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 /* エラーメッセージ削除 */

@@ -64,8 +64,8 @@ export function TaskGroup({
     setError('');
   };
 
-  const validateGroupName = (value: string): string => {
-    if (!value || value.trim().length === 0) {
+  const validateGroupName = (value: string, isForSave: boolean = false): string => {
+    if (isForSave && (!value || value.trim().length === 0)) {
       return 'グループ名は必須です';
     }
     if (value.trim().length > GROUP_NAME_MAX_LENGTH) {
@@ -76,24 +76,33 @@ export function TaskGroup({
 
   const handleEditSave = () => {
     const trimmedValue = editValue.trim();
-    const validationError = validateGroupName(trimmedValue);
     
-    if (validationError) {
-      setError(validationError);
+    if (!trimmedValue) {
+      // 空の場合は元の値に戻して終了
+      setEditValue(group.label);
+      setIsEditing(false);
+      setError('');
       return;
     }
     
-    if (trimmedValue !== group.label && onRenameGroup) {
+    if (trimmedValue.length > GROUP_NAME_MAX_LENGTH) {
+      // 文字数超過の場合は切り詰めて保存
+      const truncatedValue = trimmedValue.substring(0, GROUP_NAME_MAX_LENGTH);
+      if (truncatedValue !== group.label && onRenameGroup) {
+        onRenameGroup(group.label, truncatedValue);
+      }
+    } else if (trimmedValue !== group.label && onRenameGroup) {
       onRenameGroup(group.label, trimmedValue);
     }
+    
     setIsEditing(false);
     setError('');
   };
 
   const handleInputChange = (value: string) => {
     setEditValue(value);
-    const validationError = validateGroupName(value);
-    setError(validationError);
+    // エラー表示は一切しない - 入力中は常にエラーをクリア
+    setError('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -246,8 +255,9 @@ export function TaskGroup({
                   onChange={(e) => handleInputChange(e.target.value)}
                   onKeyDown={handleKeyPress}
                   onBlur={handleEditSave}
-                  className={`group-title-input ${error ? 'error' : ''}`}
+                  className="group-title-input"
                   maxLength={GROUP_NAME_MAX_LENGTH}
+                  placeholder=" "
                   autoFocus
                 />
                 <span className="group-char-count">
@@ -258,7 +268,6 @@ export function TaskGroup({
                 <button
                   className="group-edit-btn save"
                   onClick={handleEditSave}
-                  disabled={!!error}
                   title="保存"
                 >
                   <Check size={14} />

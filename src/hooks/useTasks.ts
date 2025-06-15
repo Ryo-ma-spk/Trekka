@@ -26,7 +26,7 @@ export function useTasks() {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
 
       let tasksData = [];
       
@@ -36,7 +36,7 @@ export function useTasks() {
           const { data: allData, error: allError } = await supabase
             .from('tasks')
             .select('*')
-            .order('created_at', { ascending: true });
+            .order('created_at', { ascending: false });
           
           if (allError) {
             throw allError;

@@ -19,42 +19,51 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availableLabels = [] }: TaskModalProps) {
-  const [tasks, setTasks] = useState<TaskFormData[]>([
-    {
-      title: '',
-      label: '',
-      startDate: new Date(),
-      endDate: new Date(),
-    },
-  ]);
-  const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+  // 共通設定
+  const [commonLabel, setCommonLabel] = useState('');
+  const [commonStartDate, setCommonStartDate] = useState(new Date());
+  const [commonEndDate, setCommonEndDate] = useState(new Date());
+  
+  // タスクタイトルのリスト
+  const [taskTitles, setTaskTitles] = useState<string[]>(['']);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // defaultLabelが変更された時、最初のタスクのラベルを更新
+  // defaultLabelが変更された時に適用
   useEffect(() => {
     if (isOpen && defaultLabel) {
-      setTasks(prevTasks => 
-        prevTasks.map((task, index) => 
-          index === 0 ? { ...task, label: defaultLabel } : task
-        )
-      );
+      setCommonLabel(defaultLabel);
     }
   }, [isOpen, defaultLabel]);
 
-  const addTask = () => {
-    setTasks([
-      ...tasks,
-      {
-        title: '',
-        label: '',
-        startDate: new Date(),
-        endDate: new Date(),
-      },
-    ]);
+  const addTaskTitle = () => {
+    setTaskTitles([...taskTitles, '']);
   };
 
-  const removeTask = (index: number) => {
-    if (tasks.length > 1) {
-      setTasks(tasks.filter((_, i) => i !== index));
+  const removeTaskTitle = (index: number) => {
+    if (taskTitles.length > 1) {
+      setTaskTitles(taskTitles.filter((_, i) => i !== index));
+      // エラーも削除
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`title_${index}`];
+        return newErrors;
+      });
+    }
+  };
+
+  const updateTaskTitle = (index: number, value: string) => {
+    setTaskTitles(prev => 
+      prev.map((title, i) => 
+        i === index ? value : title
+      )
+    );
+    
+    // エラークリア
+    if (errors[`title_${index}`]) {
+      setErrors(prev => ({
+        ...prev,
+        [`title_${index}`]: ''
+      }));
     }
   };
 
@@ -78,44 +87,41 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availa
     return '';
   };
 
-  const updateTask = (index: number, field: keyof TaskFormData, value: any) => {
-    const newTasks = [...tasks];
-    newTasks[index] = { ...newTasks[index], [field]: value };
-    setTasks(newTasks);
-    
-    // バリデーション
-    if (field === 'title' || field === 'label') {
+  const updateCommonField = (field: 'label' | 'startDate' | 'endDate', value: any) => {
+    if (field === 'label') {
+      setCommonLabel(value);
+      // バリデーション
       const error = validateField(field, value);
-      const newErrors = { ...errors };
-      if (!newErrors[index]) newErrors[index] = {};
-      
-      if (error) {
-        newErrors[index][field] = error;
-      } else {
-        delete newErrors[index][field];
-        if (Object.keys(newErrors[index]).length === 0) {
-          delete newErrors[index];
-        }
-      }
-      setErrors(newErrors);
+      setErrors(prev => ({
+        ...prev,
+        commonLabel: error
+      }));
+    } else if (field === 'startDate') {
+      setCommonStartDate(value);
+    } else if (field === 'endDate') {
+      setCommonEndDate(value);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 全タスクのバリデーション
-    const newErrors: Record<number, Record<string, string>> = {};
+    // バリデーション
+    const newErrors: Record<string, string> = {};
     let hasErrors = false;
     
-    tasks.forEach((task, index) => {
-      const titleError = validateField('title', task.title);
-      const labelError = validateField('label', task.label);
-      
-      if (titleError || labelError) {
-        newErrors[index] = {};
-        if (titleError) newErrors[index].title = titleError;
-        if (labelError) newErrors[index].label = labelError;
+    // 共通ラベルのバリデーション
+    const labelError = validateField('label', commonLabel);
+    if (labelError) {
+      newErrors.commonLabel = labelError;
+      hasErrors = true;
+    }
+    
+    // 各タスクタイトルのバリデーション
+    taskTitles.forEach((title, index) => {
+      const titleError = validateField('title', title);
+      if (titleError) {
+        newErrors[`title_${index}`] = titleError;
         hasErrors = true;
       }
     });
@@ -125,30 +131,35 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availa
       return;
     }
     
-    const validTasks = tasks.filter(
-      task => task.title.trim() && task.label.trim() && task.startDate && task.endDate
-    );
+    // 有効なタスクのみフィルタ
+    const validTitles = taskTitles.filter(title => title.trim());
+    if (validTitles.length === 0) return;
     
-    if (validTasks.length === 0) return;
+    // TaskFormData形式に変換（逆順で送信して正しい順序にする）
+    const tasksToSubmit: TaskFormData[] = validTitles.reverse().map(title => ({
+      title: title.trim(),
+      label: commonLabel,
+      startDate: commonStartDate,
+      endDate: commonEndDate,
+    }));
     
-    onSubmit(validTasks);
-    setTasks([{
-      title: '',
-      label: '',
-      startDate: new Date(),
-      endDate: new Date(),
-    }]);
+    onSubmit(tasksToSubmit);
+    
+    // リセット
+    setTaskTitles(['']);
+    setCommonLabel('');
+    setCommonStartDate(new Date());
+    setCommonEndDate(new Date());
     setErrors({});
     onClose();
   };
 
   const handleClose = () => {
-    setTasks([{
-      title: '',
-      label: '',
-      startDate: new Date(),
-      endDate: new Date(),
-    }]);
+    // リセット
+    setTaskTitles(['']);
+    setCommonLabel('');
+    setCommonStartDate(new Date());
+    setCommonEndDate(new Date());
     setErrors({});
     onClose();
   };
@@ -167,102 +178,100 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availa
         
         <form onSubmit={handleSubmit}>
           <div className="tasks-form">
-            <div className="tasks-header">
-              <h3>タスク一覧</h3>
-              <button type="button" className="add-task-btn" onClick={addTask}>
-                <Plus size={16} />
-                タスクを追加
-              </button>
-            </div>
+            {/* 共通設定セクション */}
+            <div className="common-settings">
+              
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    ラベル 
+                    <span className="char-count">
+                      ({commonLabel.length}/{VALIDATION_RULES.label.max})
+                    </span>
+                  </label>
+                  <select
+                    value={commonLabel}
+                    onChange={e => updateCommonField('label', e.target.value)}
+                    className={errors.commonLabel ? 'error' : ''}
+                    required
+                  >
+                    <option value="">ラベルを選択</option>
+                    {availableLabels.map(label => (
+                      <option key={label} value={label}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.commonLabel && (
+                    <span className="error-message">{errors.commonLabel}</span>
+                  )}
+                </div>
+              </div>
 
-            <div className="tasks-list">
-              {tasks.map((task, index) => (
-                <div key={index} className="task-card-form">
-                  <div className="task-form-header">
-                    <span className="task-number">タスク {index + 1}</span>
-                    {tasks.length > 1 && (
-                      <button
-                        type="button"
-                        className="remove-task-btn"
-                        onClick={() => removeTask(index)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+              <div className="form-row" style={{ marginTop: '20px' }}>
+                <div className="form-field">
+                  <label>開始日</label>
+                  <DatePicker
+                    selected={commonStartDate}
+                    onChange={date => updateCommonField('startDate', date || new Date())}
+                    dateFormat="yyyy/M/d"
+                    className="date-picker"
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label>終了日</label>
+                  <DatePicker
+                    selected={commonEndDate}
+                    onChange={date => updateCommonField('endDate', date || new Date())}
+                    dateFormat="yyyy/M/d"
+                    className="date-picker"
+                    minDate={commonStartDate}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* タスクリストセクション */}
+            <div className="tasks-section">
+              <div className="tasks-header">
+                <h3>タスク一覧</h3>
+                <button type="button" className="add-task-btn" onClick={addTaskTitle}>
+                  <Plus size={16} />
+                  タスクを追加
+                </button>
+              </div>
+
+              <div className="tasks-list">
+                {taskTitles.map((title, index) => (
+                  <div key={index} className="task-item">
+                    <span className="task-number">{index + 1}.</span>
+                    <div className="task-input-container">
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={e => updateTaskTitle(index, e.target.value)}
+                        placeholder="タスク名を入力"
+                        maxLength={VALIDATION_RULES.title.max}
+                        className={errors[`title_${index}`] ? 'error' : ''}
+                        required
+                      />
+                      {taskTitles.length > 1 && (
+                        <button
+                          type="button"
+                          className="remove-task-btn"
+                          onClick={() => removeTaskTitle(index)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {errors[`title_${index}`] && (
+                      <span className="error-message">{errors[`title_${index}`]}</span>
                     )}
                   </div>
-
-                  <div className="task-form-fields">
-                    <div className="form-row">
-                      <div className="form-field">
-                        <label>
-                          タスク名 
-                          <span className="char-count">
-                            ({task.title.length}/{VALIDATION_RULES.title.max})
-                          </span>
-                        </label>
-                        <input
-                          type="text"
-                          value={task.title}
-                          onChange={e => updateTask(index, 'title', e.target.value)}
-                          placeholder="タスク名を入力"
-                          maxLength={VALIDATION_RULES.title.max}
-                          className={errors[index]?.title ? 'error' : ''}
-                          required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label>
-                          ラベル 
-                          <span className="char-count">
-                            ({task.label.length}/{VALIDATION_RULES.label.max})
-                          </span>
-                        </label>
-                        <select
-                          value={task.label}
-                          onChange={e => updateTask(index, 'label', e.target.value)}
-                          className={errors[index]?.label ? 'error' : ''}
-                          required
-                        >
-                          <option value="">ラベルを選択</option>
-                          {availableLabels.map(label => (
-                            <option key={label} value={label}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="form-field">
-                        <label>開始日</label>
-                        <DatePicker
-                          selected={task.startDate}
-                          onChange={date => updateTask(index, 'startDate', date)}
-                          selectsStart
-                          startDate={task.startDate}
-                          endDate={task.endDate}
-                          dateFormat="yyyy/MM/dd"
-                          required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label>終了日</label>
-                        <DatePicker
-                          selected={task.endDate}
-                          onChange={date => updateTask(index, 'endDate', date)}
-                          selectsEnd
-                          startDate={task.startDate}
-                          endDate={task.endDate}
-                          minDate={task.startDate}
-                          dateFormat="yyyy/MM/dd"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
           
@@ -273,7 +282,6 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availa
             <button 
               type="submit" 
               className="submit-btn"
-              disabled={Object.keys(errors).length > 0}
             >
               タスクを作成
             </button>
