@@ -15,9 +15,10 @@ interface TaskModalProps {
   onClose: () => void;
   onSubmit: (tasks: TaskFormData[]) => void;
   defaultLabel?: string;
+  availableLabels?: string[];
 }
 
-export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '' }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availableLabels = [] }: TaskModalProps) {
   const [tasks, setTasks] = useState<TaskFormData[]>([
     {
       title: '',
@@ -216,15 +217,19 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '' }: Task
                             ({task.label.length}/{VALIDATION_RULES.label.max})
                           </span>
                         </label>
-                        <input
-                          type="text"
+                        <select
                           value={task.label}
                           onChange={e => updateTask(index, 'label', e.target.value)}
-                          placeholder="カテゴリ"
-                          maxLength={VALIDATION_RULES.label.max}
                           className={errors[index]?.label ? 'error' : ''}
                           required
-                        />
+                        >
+                          <option value="">ラベルを選択</option>
+                          {availableLabels.map(label => (
+                            <option key={label} value={label}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

@@ -500,6 +500,7 @@ function TodoApp() {
         }}
         onSubmit={createTasks}
         defaultLabel={defaultLabel}
+        availableLabels={getTaskGroups().map(group => group.label)}
       />
 
       <EditTaskModal
@@ -510,6 +511,7 @@ function TodoApp() {
           setEditingTask(null);
         }}
         onSave={handleSaveTask}
+        availableLabels={getTaskGroups().map(group => group.label)}
       />
     </div>
   );

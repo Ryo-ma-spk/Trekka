@@ -15,9 +15,10 @@ interface EditTaskModalProps {
   task: Task | null;
   onClose: () => void;
   onSave: (taskId: string, updates: Partial<Task>) => void;
+  availableLabels?: string[];
 }
 
-export function EditTaskModal({ isOpen, task, onClose, onSave }: EditTaskModalProps) {
+export function EditTaskModal({ isOpen, task, onClose, onSave, availableLabels = [] }: EditTaskModalProps) {
   const [title, setTitle] = useState('');
   const [label, setLabel] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -180,15 +181,19 @@ export function EditTaskModal({ isOpen, task, onClose, onSave }: EditTaskModalPr
                           ({label.length}/{VALIDATION_RULES.label.max})
                         </span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={label}
                         onChange={e => updateField('label', e.target.value)}
-                        placeholder="カテゴリ"
-                        maxLength={VALIDATION_RULES.label.max}
                         className={errors.label ? 'error' : ''}
                         required
-                      />
+                      >
+                        <option value="">ラベルを選択</option>
+                        {availableLabels.map(availableLabel => (
+                          <option key={availableLabel} value={availableLabel}>
+                            {availableLabel}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

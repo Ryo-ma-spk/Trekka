@@ -1555,6 +1555,29 @@ body {
   /* 既存のinputスタイルを維持 */
 }
 
+.form-field select {
+  padding: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.form-field select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+.form-field select.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  margin: 0 !important;
+}
+
 /* エラーメッセージ削除 */
 
 .modal-footer {
