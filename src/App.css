@@ -2641,3 +2641,36 @@ body {
     gap: 0.25rem;
   }
 }
+
+/* フローティングタスク作成ボタン */
+.floating-add-task-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-out;
+  opacity: 1;
+  z-index: 10;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.floating-add-task-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.floating-add-task-btn:active {
+  transform: scale(0.95);
+}

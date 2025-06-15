@@ -9,13 +9,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // セッションの自動更新
     autoRefreshToken: true,
-    // トークンの持続
     persistSession: true,
-    // セッション検知の詳細設定（パスワードリセット制御のため無効化）
-    detectSessionInUrl: false,
-    // 開発環境でのフローの改善
+    detectSessionInUrl: true,
     flowType: 'pkce'
   }
 });

@@ -279,16 +279,6 @@ export function TaskGroup({
                 <span className="task-count">({group.tasks.length})</span>
               </h2>
               <div className="group-actions">
-                <button 
-                  className="group-add-task-trigger" 
-                  title="このグループにタスクを追加"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddTaskStart();
-                  }}
-                >
-                  <Plus size={14} />
-                </button>
                 <button className="group-edit-trigger" title="グループ名を編集">
                   <Edit2 size={14} />
                 </button>
@@ -405,6 +395,18 @@ export function TaskGroup({
           </div>
         )}
       </div>
+      
+      {/* 右下のタスク作成ボタン */}
+      <button 
+        className="floating-add-task-btn" 
+        title="このグループにタスクを追加"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleAddTaskStart();
+        }}
+      >
+        +
+      </button>
     </div>
   );
 }
