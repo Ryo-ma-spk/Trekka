@@ -1,8 +1,46 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '../lib/supabase';
+import { useEffect } from 'react';
 
 export function AuthForm() {
+  useEffect(() => {
+    // フォーム送信時にトリガーを保存
+    const handleFormSubmit = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const form = target.closest('form');
+      if (!form) return;
+
+      // フォームの種類を判定
+      const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+      const passwordInput = form.querySelector('input[type="password"]') as HTMLInputElement;
+      const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      
+      if (!emailInput || !submitButton) return;
+
+      const buttonText = submitButton.textContent?.toLowerCase() || '';
+      
+      // パスワードリセット判定
+      if (!passwordInput || buttonText.includes('reset') || buttonText.includes('リセット') || buttonText.includes('送信')) {
+        localStorage.setItem('auth_trigger', 'password_reset');
+      }
+      // アカウント作成判定
+      else if (buttonText.includes('sign up') || buttonText.includes('作成') || buttonText.includes('register')) {
+        localStorage.setItem('auth_trigger', 'signup');
+      }
+      // 通常ログイン
+      else {
+        localStorage.setItem('auth_trigger', 'signin');
+      }
+    };
+
+    // クリックイベントで監視
+    document.addEventListener('click', handleFormSubmit, true);
+
+    return () => {
+      document.removeEventListener('click', handleFormSubmit, true);
+    };
+  }, []);
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -56,7 +94,9 @@ export function AuthForm() {
             }
           }}
           providers={[]}
-          redirectTo={`${window.location.origin}/`}
+          redirectTo="http://192.168.11.5:5173"
+          // 開発環境ではメール確認をスキップ
+          skipConfirmation={import.meta.env.DEV}
           onlyThirdPartyProviders={false}
           showLinks={true}
           view="sign_in"

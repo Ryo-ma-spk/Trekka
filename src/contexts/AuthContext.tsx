@@ -7,6 +7,10 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  isSignupComplete: boolean;
+  isPasswordReset: boolean;
+  clearSignupComplete: () => void;
+  clearPasswordReset: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +23,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSignupComplete, setIsSignupComplete] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
     // 現在のセッションを取得
@@ -43,13 +49,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state changed:', event, {
-          email: session?.user?.email,
-          userId: session?.user?.id,
-          accessToken: session?.access_token ? 'present' : 'missing',
-          refreshToken: session?.refresh_token ? 'present' : 'missing',
-          expiresAt: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'unknown'
-        });
+        if (event === 'SIGNED_IN' && session?.user) {
+          // localStorageからトリガー情報を取得
+          const authTrigger = localStorage.getItem('auth_trigger');
+          
+          if (authTrigger === 'signup') {
+            setIsSignupComplete(true);
+            localStorage.removeItem('auth_trigger');
+          } else if (authTrigger === 'password_reset') {
+            setIsPasswordReset(true);
+            localStorage.removeItem('auth_trigger');
+          }
+        }
         
         setSession(session);
         setUser(session?.user || null);
@@ -71,11 +82,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const clearSignupComplete = () => {
+    setIsSignupComplete(false);
+  };
+
+  const clearPasswordReset = () => {
+    setIsPasswordReset(false);
+  };
+
   const value = {
     user,
     session,
     loading,
     signOut,
+    isSignupComplete,
+    isPasswordReset,
+    clearSignupComplete,
+    clearPasswordReset,
   };
 
   return (
@@ -92,4 +115,3 @@ export function useAuth() {
   }
   return context;
 }
-

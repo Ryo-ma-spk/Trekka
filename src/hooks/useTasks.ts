@@ -21,8 +21,6 @@ export function useTasks() {
     }
 
     try {
-      console.log('🔍 Fetching tasks for user:', user.id);
-      
       // user_id列が存在するかチェック
       const { data, error } = await supabase
         .from('tasks')
@@ -33,17 +31,14 @@ export function useTasks() {
       let tasksData = [];
       
       if (error) {
-        console.log('⚠️ Tasks fetch error:', error);
         // user_id列が存在しない場合は全件取得
         if (error.message.includes('user_id')) {
-          console.log('⚠️ user_id column does not exist, fetching all tasks');
           const { data: allData, error: allError } = await supabase
             .from('tasks')
             .select('*')
             .order('created_at', { ascending: true });
           
           if (allError) {
-            console.log('❌ All tasks fetch error:', allError);
             throw allError;
           }
           tasksData = allData || [];
@@ -54,7 +49,6 @@ export function useTasks() {
         tasksData = data || [];
       }
 
-      console.log('✅ Tasks loaded:', tasksData.length);
       setTasks(tasksData);
 
       // グループ順序を取得または初期化（ユーザー別）
@@ -70,7 +64,6 @@ export function useTasks() {
         setGroupOrder(labels);
       }
     } catch (err) {
-      console.log('❌ fetchTasks error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       // Loading state removed
@@ -93,7 +86,6 @@ export function useTasks() {
       const hasUserId = !checkError || !checkError.message.includes('user_id');
 
       if (!hasPosition && !hasUserId) {
-        console.log('⚠️ Position and user_id columns do not exist');
         tasksToInsert = tasksData.map(task => ({
           title: task.title,
           period: task.startDate && task.endDate 
@@ -102,7 +94,6 @@ export function useTasks() {
           label: task.label,
         }));
       } else if (!hasPosition) {
-        console.log('⚠️ Position column does not exist, creating tasks with user_id only');
         tasksToInsert = tasksData.map(task => ({
           title: task.title,
           period: task.startDate && task.endDate 
@@ -112,7 +103,6 @@ export function useTasks() {
           user_id: user.id,
         }));
       } else if (!hasUserId) {
-        console.log('⚠️ user_id column does not exist, creating tasks with position only');
         tasksToInsert = await Promise.all(tasksData.map(async (task) => {
           const { data: maxPositionData } = await supabase
             .from('tasks')
@@ -201,8 +191,6 @@ export function useTasks() {
 
   // 楽観的更新版 - 即座にローカル状態を更新してからDB更新
   const updateTaskLabelOptimistic = async (taskId: string, newLabel: string) => {
-    console.log('⚡ Optimistic update - immediate UI change');
-    
     // 1. 即座にローカル状態を更新
     setTasks(prevTasks => 
       prevTasks.map(task => 
@@ -218,13 +206,10 @@ export function useTasks() {
         .eq('id', taskId);
 
       if (error) {
-        console.error('❌ DB update failed, reverting...', error);
         // エラー時は元に戻す
         await fetchTasks();
         throw error;
       }
-      
-      console.log('✅ DB update completed');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update task label');
       throw err;
@@ -331,8 +316,6 @@ export function useTasks() {
       
       if (tasksWithLabel.length > 0) {
         // タスクがある場合は全て削除
-        console.log(`🗑️ Deleting ${tasksWithLabel.length} tasks with label "${labelToDelete}"`);
-        
         for (const task of tasksWithLabel) {
           const { error } = await supabase
             .from('tasks')
@@ -341,8 +324,6 @@ export function useTasks() {
 
           if (error) throw error;
         }
-        
-        console.log(`✅ Successfully deleted ${tasksWithLabel.length} tasks`);
       }
 
       // ラベルグループを削除
@@ -400,7 +381,6 @@ export function useTasks() {
         .limit(1);
 
       if (checkError && checkError.message.includes('position')) {
-        console.log('⚠️ Position column does not exist, skipping reorder operation');
         // position列がない場合は並び替えを行わない（作成順で表示）
         return;
       }
@@ -423,8 +403,6 @@ export function useTasks() {
 
   // タスクを別のグループの特定位置に移動（楽観的更新版）
   const moveTaskToGroupPosition = async (taskId: string, targetLabel: string, targetIndex: number) => {
-    console.log(`⚡ Optimistic cross-group move - task ${taskId} to ${targetLabel} at index ${targetIndex}`);
-    
     // 1. 即座にローカル状態を更新
     const taskToMove = tasks.find(t => t.id === taskId);
     if (!taskToMove) {
@@ -459,7 +437,6 @@ export function useTasks() {
         .limit(1);
 
       if (checkError && checkError.message.includes('position')) {
-        console.log('⚠️ Position column does not exist, using simple label update');
         // position列がない場合は、単純にラベルのみ更新
         const { error } = await supabase
           .from('tasks')
@@ -467,14 +444,12 @@ export function useTasks() {
           .eq('id', taskId);
 
         if (error) {
-          console.error('❌ DB update failed, reverting...', error);
           await fetchTasks();
           throw error;
         }
       } else {
         // position列がある場合は、整数値でposition更新
         const newPosition = targetIndex + 1;
-        console.log(`📍 Setting position to ${newPosition} for task ${taskId}`);
         
         const { error } = await supabase
           .from('tasks')
@@ -482,7 +457,6 @@ export function useTasks() {
           .eq('id', taskId);
 
         if (error) {
-          console.error('❌ DB update failed, reverting...', error);
           await fetchTasks();
           throw error;
         }
@@ -499,10 +473,7 @@ export function useTasks() {
 
         await Promise.all(updates);
       }
-      
-      console.log('✅ Cross-group move completed');
     } catch (err) {
-      console.error('❌ Cross-group move failed, reverting:', err);
       // エラー時は元に戻す
       await fetchTasks();
       setError(err instanceof Error ? err.message : 'Failed to move task');

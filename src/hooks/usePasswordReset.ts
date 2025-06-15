@@ -9,18 +9,11 @@ export function usePasswordReset() {
   useEffect(() => {
     const checkPasswordResetSession = async () => {
       try {
-        console.log('🔍 URL ANALYSIS:');
-        console.log('URL:', window.location.href);
-        console.log('Hash:', window.location.hash);
-        console.log('Search:', window.location.search);
 
         // URLのハッシュとクエリパラメータをチェック
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const searchParams = new URLSearchParams(window.location.search);
         
-        // 全てのパラメータをログ出力
-        console.log('🔍 Hash params:', Object.fromEntries(hashParams.entries()));
-        console.log('🔍 Search params:', Object.fromEntries(searchParams.entries()));
 
         // 可能性のあるパスワードリセット検出パターン
         const accessToken = hashParams.get('access_token');
@@ -28,11 +21,6 @@ export function usePasswordReset() {
         const hashType = hashParams.get('type');
         const code = searchParams.get('code');
         
-        console.log('🔍 DETECTION RESULTS:');
-        console.log('- access_token:', !!accessToken);
-        console.log('- refresh_token:', !!refreshToken);
-        console.log('- type:', hashType);
-        console.log('- code:', !!code);
 
         // パスワードリセット検出の優先順位
         let resetDetected = false;
@@ -40,17 +28,14 @@ export function usePasswordReset() {
 
         // 1. ハッシュベースのrecoveryトークン（最優先）
         if (hashType === 'recovery' && accessToken && refreshToken) {
-          console.log('✅ DETECTED: Hash-based recovery tokens');
           tokens = { access_token: accessToken, refresh_token: refreshToken };
           resetDetected = true;
         }
         // 2. PKCEコードが存在する場合
         else if (code) {
-          console.log('✅ DETECTED: PKCE code - attempting to exchange');
           try {
             const { data, error } = await supabase.auth.exchangeCodeForSession(code);
             if (!error && data.session) {
-              console.log('✅ PKCE session established - assuming password reset');
               tokens = {
                 access_token: data.session.access_token,
                 refresh_token: data.session.refresh_token || ''
@@ -58,7 +43,6 @@ export function usePasswordReset() {
               resetDetected = true;
             }
           } catch (error) {
-            console.error('❌ PKCE exchange failed:', error);
           }
         }
 
@@ -66,15 +50,12 @@ export function usePasswordReset() {
         if (resetDetected && tokens) {
           setRecoveryTokens(tokens);
           setIsPasswordResetMode(true);
-          console.log('🔐 PASSWORD RESET MODE ACTIVATED');
           
           // URLをクリア
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-          console.log('ℹ️ No password reset detected - normal flow');
         }
       } catch (error) {
-        console.error('❌ Error in password reset check:', error);
       } finally {
         setIsChecking(false);
       }
@@ -84,7 +65,6 @@ export function usePasswordReset() {
   }, []);
 
   const completePasswordReset = () => {
-    console.log('🔐 Completing password reset');
     setIsPasswordResetMode(false);
     setRecoveryTokens(null);
   };

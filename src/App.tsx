@@ -4,17 +4,16 @@ import { TaskGroup } from "./components/TaskGroup";
 import { TaskModal } from "./components/TaskModal";
 import { EditTaskModal } from "./components/EditTaskModal";
 import { AuthForm } from "./components/AuthForm";
+import { SignupComplete } from "./components/SignupComplete";
 import { PasswordReset } from "./components/PasswordReset";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useTasks } from "./hooks/useTasks";
-import { usePasswordReset } from "./hooks/usePasswordReset";
 import type { Task } from "./types";
 import "./App.css";
 
 function TodoApp() {
   // *** すべてのフックを最上部で呼ぶ（Reactのルール） ***
-  const { user, loading: authLoading, signOut } = useAuth();
-  const { isPasswordResetMode, isChecking, completePasswordReset, recoveryTokens } = usePasswordReset();
+  const { user, loading: authLoading, signOut, isSignupComplete, isPasswordReset, clearSignupComplete, clearPasswordReset } = useAuth();
   
   // useState フック
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -268,25 +267,31 @@ function TodoApp() {
     };
   }, [isDragging, draggedTask, isGroupDragging, draggedGroup, tasks, getTaskGroups, setError, fetchTasks, setTasks, reorderTasksInGroup, moveTaskToGroupPosition]);
 
-  // *** この後に条件分岐 ***
-  console.log('🔍 TodoApp render decision tree:');
-  console.log('User:', user?.email);
-  console.log('Auth loading:', authLoading);
-  console.log('Password reset mode:', isPasswordResetMode);
-  console.log('Is checking:', isChecking);
-  console.log('Will show password reset:', isPasswordResetMode);
-  console.log('Will show auth form:', !isPasswordResetMode && !user);
-  console.log('Will show main app:', !isPasswordResetMode && !!user);
+  // 認証中の表示
+  if (authLoading) {
+    return (
+      <div className="app">
+        <div className="loading">
+          読み込み中...
+        </div>
+      </div>
+    );
+  }
 
-
-  // パスワードリセットモード（ユーザー認証状態に関わらず優先）
-  if (isPasswordResetMode) {
-    console.log('🔐 Rendering PasswordReset component');
+  // パスワードリセット画面（最優先）
+  if (isPasswordReset && user) {
     return (
       <PasswordReset 
-        onComplete={completePasswordReset}
-        onCancel={completePasswordReset}
-        recoveryTokens={recoveryTokens}
+        onComplete={clearPasswordReset}
+      />
+    );
+  }
+
+  // アカウント登録完了画面
+  if (isSignupComplete && user) {
+    return (
+      <SignupComplete 
+        onComplete={clearSignupComplete}
       />
     );
   }
@@ -404,9 +409,7 @@ function TodoApp() {
               </button>
             </div>
             <div className="user-section">
-              <div className="user-info">
-                <span className="user-email">{user.email}</span>
-              </div>
+              <span className="user-email">{user.email}</span>
               <button className="logout-btn-header" onClick={signOut} title="ログアウト">
                 <LogOut size={16} />
                 ログアウト
