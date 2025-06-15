@@ -13,5 +13,34 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'Accept-Language': 'ja'
+    }
   }
 });
+
+// サインアップ時の日本語メール設定
+export const signUpWithEmail = async (email: string, password: string) => {
+  return await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      data: {
+        locale: 'ja'
+      }
+    }
+  });
+};
+
+// パスワードリセット時の日本語メール設定
+export const resetPasswordForEmail = async (email: string) => {
+  return await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/reset-password`,
+    data: {
+      locale: 'ja'
+    }
+  });
+};

@@ -94,7 +94,7 @@ export function AuthForm() {
             }
           }}
           providers={[]}
-          redirectTo="http://192.168.11.5:5173"
+          redirectTo={`${window.location.origin}/auth/callback?locale=ja`}
           // 開発環境ではメール確認をスキップ
           skipConfirmation={import.meta.env.DEV}
           onlyThirdPartyProviders={false}
