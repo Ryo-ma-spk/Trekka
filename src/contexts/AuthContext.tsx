@@ -31,11 +31,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isPasswordResetComplete, setIsPasswordResetComplete] = useState(false);
 
   useEffect(() => {
-    // URLパラメータからパスワードリセット状態を検出（パスワードリセットリンクからの場合のみ）
+    // URLパラメータからパスワードリセット状態を検出
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reset') === 'true') {
+    const hasAccessToken = urlParams.get('access_token');
+    const hasRefreshToken = urlParams.get('refresh_token');
+    const hasType = urlParams.get('type');
+    
+    // Supabaseのパスワードリセットリンクかどうかを判定
+    if (hasAccessToken && hasRefreshToken && hasType === 'recovery') {
       localStorage.setItem('auth_trigger', 'password_reset');
-      // URLパラメータをクリア
+    } else if (urlParams.get('reset') === 'true') {
+      localStorage.setItem('auth_trigger', 'password_reset');
+      // カスタムパラメータをクリア
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -67,15 +74,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           // URLパラメータも確認
           const urlParams = new URLSearchParams(window.location.search);
+          const hasAccessToken = urlParams.get('access_token');
+          const hasRefreshToken = urlParams.get('refresh_token');
+          const hasType = urlParams.get('type');
           const isResetUrl = urlParams.get('reset') === 'true';
+          const isPasswordResetFlow = hasAccessToken && hasRefreshToken && hasType === 'recovery';
           
-          if (authTrigger === 'signup' && !isResetUrl) {
+          if (authTrigger === 'signup' && !isResetUrl && !isPasswordResetFlow) {
             setIsSignupComplete(true);
             localStorage.removeItem('auth_trigger');
-          } else if (authTrigger === 'password_reset' || isResetUrl) {
+          } else if (authTrigger === 'password_reset' || isResetUrl || isPasswordResetFlow) {
             setIsPasswordReset(true);
             localStorage.removeItem('auth_trigger');
+            // URLパラメータをクリア（パスワードリセット後）
+            if (isPasswordResetFlow) {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
           }
+        } else if (event === 'SIGNED_OUT') {
+          // サインアウト時の状態リセット
+          setIsSignupComplete(false);
+          setIsPasswordReset(false);
+          setIsPasswordResetComplete(false);
+          localStorage.removeItem('auth_trigger');
         }
         
         setSession(session);
@@ -89,12 +110,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     try {
+      // 開発環境でのデバッグログ
+      if (import.meta.env.DEV) {
+        console.log('🔓 Starting signOut process...');
+      }
+      
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
-        // サインアウトエラー（プロダクション環境では無視）
+        if (import.meta.env.DEV) {
+          console.error('❌ SignOut error:', error);
+        }
+        // 開発環境ではエラーがあっても強制的にローカル状態をクリア
+        if (import.meta.env.DEV) {
+          console.log('🧹 Force clearing local state in dev mode...');
+          setSession(null);
+          setUser(null);
+          setIsSignupComplete(false);
+          setIsPasswordReset(false);
+          setIsPasswordResetComplete(false);
+          localStorage.removeItem('auth_trigger');
+          localStorage.removeItem('sb-auth-token');
+        }
+      } else {
+        if (import.meta.env.DEV) {
+          console.log('✅ SignOut successful');
+        }
       }
     } catch (error) {
-      // サインアウト中にエラーが発生（プロダクション環境では無視）
+      if (import.meta.env.DEV) {
+        console.error('❌ SignOut catch error:', error);
+        // 開発環境ではキャッチエラーでも強制クリア
+        console.log('🧹 Force clearing local state after catch...');
+        setSession(null);
+        setUser(null);
+        setIsSignupComplete(false);
+        setIsPasswordReset(false);
+        setIsPasswordResetComplete(false);
+        localStorage.removeItem('auth_trigger');
+        localStorage.removeItem('sb-auth-token');
+      }
     }
   };
 

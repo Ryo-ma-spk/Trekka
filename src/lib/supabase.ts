@@ -12,7 +12,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    // 開発環境での適切な設定
+    storageKey: 'sb-auth-token',
+    storage: window.localStorage,
+    debug: import.meta.env.DEV
   },
   global: {
     headers: {
@@ -41,6 +45,6 @@ export const resetPasswordForEmail = async (email: string) => {
   localStorage.setItem('auth_trigger', 'password_reset');
   
   return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}?reset=true`
+    redirectTo: `${window.location.origin}`
   });
 };
