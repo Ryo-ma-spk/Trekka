@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, FolderPlus, LogOut } from "lucide-react";
+import { Plus, FolderPlus, LogOut, Calendar } from "lucide-react";
 import { TaskGroup } from "./components/TaskGroup";
 import { TaskModal } from "./components/TaskModal";
 import { EditTaskModal } from "./components/EditTaskModal";
@@ -466,8 +466,10 @@ function TodoApp() {
               </div>
             </div>
             <div className="task-info">
-              <div className="task-period">📅 {draggedTask.period}</div>
-              <span className="task-label">{draggedTask.label}</span>
+              <div className="task-period">
+                <Calendar size={14} />
+                {draggedTask.period}
+              </div>
             </div>
           </div>
         </div>
