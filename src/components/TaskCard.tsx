@@ -62,7 +62,7 @@ export function TaskCard({ task, onEdit, onDelete, onMouseDown, isDragging }: Ta
           <Calendar size={14} />
           {task.period}
         </div>
-        <span className="task-label">{task.label}</span>
+        {/* <span className="task-label">{task.label}</span> */}
       </div>
     </div>
   );
