@@ -470,6 +470,7 @@ function TodoApp() {
                 <Calendar size={14} />
                 {draggedTask.period}
               </div>
+              <span className="task-label">{draggedTask.label}</span>
             </div>
           </div>
         </div>
