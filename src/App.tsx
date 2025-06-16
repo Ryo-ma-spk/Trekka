@@ -284,6 +284,7 @@ function TodoApp() {
 
   // パスワードリセット画面
   if (isPasswordReset && user) {
+    console.log('🎯 Showing PasswordReset screen');
     return (
       <PasswordReset 
         onComplete={clearPasswordReset}
@@ -293,6 +294,7 @@ function TodoApp() {
 
   // アカウント登録完了画面
   if (isSignupComplete && user) {
+    console.log('🎯 Showing SignupComplete screen');
     return (
       <SignupComplete 
         onComplete={clearSignupComplete}
@@ -302,8 +304,12 @@ function TodoApp() {
 
   // 未認証の場合はログインフォーム
   if (!user) {
+    console.log('🎯 Showing AuthForm (no user)');
     return <AuthForm />;
   }
+
+  // メインアプリ画面
+  console.log('🎯 Showing main app', { user: user.email, isPasswordReset, isSignupComplete });
 
   // ユーティリティ関数
   const handleEditTask = (task: Task) => {

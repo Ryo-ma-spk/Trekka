@@ -16,22 +16,17 @@ export function AuthForm() {
         
         // パスワードリセット判定
         if (buttonText.includes('パスワードリセット') || buttonText.includes('送信') || buttonText.includes('reset')) {
+          console.log('🔐 Setting password reset trigger');
           localStorage.setItem('auth_trigger', 'password_reset');
-          
-          // パスワードリセット用のリダイレクトURLを一時的に設定
-          setTimeout(() => {
-            const authContainer = document.querySelector('[data-supabase-auth-ui]');
-            if (authContainer) {
-              // Supabase Auth UIの設定を動的に変更（技術的には難しいため、別のアプローチを使用）
-            }
-          }, 100);
         }
         // アカウント作成判定
         else if (buttonText.includes('アカウント作成') || buttonText.includes('sign up') || buttonText.includes('作成')) {
+          console.log('📝 Setting signup trigger');
           localStorage.setItem('auth_trigger', 'signup');
         }
         // 通常ログイン
         else if (buttonText.includes('ログイン') || buttonText.includes('sign in')) {
+          console.log('🔑 Setting signin trigger');  
           localStorage.setItem('auth_trigger', 'signin');
         }
       }
