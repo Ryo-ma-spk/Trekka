@@ -98,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const clearPasswordReset = () => {
+    console.log('Clearing password reset state, returning to home');
     setIsPasswordReset(false);
   };
 

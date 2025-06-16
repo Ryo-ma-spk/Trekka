@@ -33,7 +33,8 @@ export function PasswordReset({ onComplete }: PasswordResetProps) {
 
       if (updateError) throw updateError;
 
-      alert('パスワードが正常に更新されました。');
+      // パスワード更新成功 - ホーム画面に戻る
+      console.log('Password updated successfully, returning to home');
       onComplete();
     } catch (error: any) {
       console.error('Password update error:', error);
