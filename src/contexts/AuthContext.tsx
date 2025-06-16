@@ -27,6 +27,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
+    // URLパラメータからパスワードリセット状態を検出
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === 'true') {
+      localStorage.setItem('auth_trigger', 'password_reset');
+      // URLパラメータをクリア
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     // 現在のセッションを取得
     const getSession = async () => {
       try {

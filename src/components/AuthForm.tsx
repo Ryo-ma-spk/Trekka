@@ -8,29 +8,29 @@ export function AuthForm() {
     // フォーム送信時にトリガーを保存
     const handleFormSubmit = (e: Event) => {
       const target = e.target as HTMLElement;
-      const form = target.closest('form');
-      if (!form) return;
-
-      // フォームの種類を判定
-      const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
-      const passwordInput = form.querySelector('input[type="password"]') as HTMLInputElement;
-      const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
       
-      if (!emailInput || !submitButton) return;
-
-      const buttonText = submitButton.textContent?.toLowerCase() || '';
-      
-      // パスワードリセット判定
-      if (!passwordInput || buttonText.includes('reset') || buttonText.includes('リセット') || buttonText.includes('送信')) {
-        localStorage.setItem('auth_trigger', 'password_reset');
-      }
-      // アカウント作成判定
-      else if (buttonText.includes('sign up') || buttonText.includes('作成') || buttonText.includes('register') || buttonText.includes('アカウント作成')) {
-        localStorage.setItem('auth_trigger', 'signup');
-      }
-      // 通常ログイン
-      else {
-        localStorage.setItem('auth_trigger', 'signin');
+      // ボタンが直接クリックされた場合
+      if (target.tagName === 'BUTTON') {
+        const button = target as HTMLButtonElement;
+        const buttonText = button.textContent?.toLowerCase() || '';
+        
+        console.log('Button clicked:', buttonText);
+        
+        // パスワードリセット判定
+        if (buttonText.includes('パスワードリセット') || buttonText.includes('送信') || buttonText.includes('reset')) {
+          localStorage.setItem('auth_trigger', 'password_reset');
+          console.log('Set trigger: password_reset');
+        }
+        // アカウント作成判定
+        else if (buttonText.includes('アカウント作成') || buttonText.includes('sign up') || buttonText.includes('作成')) {
+          localStorage.setItem('auth_trigger', 'signup');
+          console.log('Set trigger: signup');
+        }
+        // 通常ログイン
+        else if (buttonText.includes('ログイン') || buttonText.includes('sign in')) {
+          localStorage.setItem('auth_trigger', 'signin');
+          console.log('Set trigger: signin');
+        }
       }
     };
 
@@ -94,7 +94,7 @@ export function AuthForm() {
             }
           }}
           providers={[]}
-          redirectTo={`${window.location.origin}/auth/callback?locale=ja`}
+          redirectTo={`${window.location.origin}?reset=true`}
           // 開発環境ではメール確認をスキップ
           skipConfirmation={import.meta.env.DEV}
           onlyThirdPartyProviders={false}
