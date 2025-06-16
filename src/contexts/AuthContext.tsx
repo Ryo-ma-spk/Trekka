@@ -49,9 +49,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        
         if (event === 'SIGNED_IN' && session?.user) {
           // localStorageからトリガー情報を取得
           const authTrigger = localStorage.getItem('auth_trigger');
+          console.log('Auth trigger:', authTrigger);
           
           if (authTrigger === 'signup') {
             setIsSignupComplete(true);

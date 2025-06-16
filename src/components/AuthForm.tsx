@@ -25,7 +25,7 @@ export function AuthForm() {
         localStorage.setItem('auth_trigger', 'password_reset');
       }
       // アカウント作成判定
-      else if (buttonText.includes('sign up') || buttonText.includes('作成') || buttonText.includes('register')) {
+      else if (buttonText.includes('sign up') || buttonText.includes('作成') || buttonText.includes('register') || buttonText.includes('アカウント作成')) {
         localStorage.setItem('auth_trigger', 'signup');
       }
       // 通常ログイン
