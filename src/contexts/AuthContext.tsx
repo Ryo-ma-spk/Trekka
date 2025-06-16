@@ -9,8 +9,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isSignupComplete: boolean;
   isPasswordReset: boolean;
+  isPasswordResetComplete: boolean;
   clearSignupComplete: () => void;
   clearPasswordReset: () => void;
+  setPasswordResetComplete: () => void;
+  clearPasswordResetComplete: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +28,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [isSignupComplete, setIsSignupComplete] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isPasswordResetComplete, setIsPasswordResetComplete] = useState(false);
 
   useEffect(() => {
     // URLパラメータからパスワードリセット状態を検出（パスワードリセットリンクからの場合のみ）
@@ -105,8 +109,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const clearPasswordReset = () => {
-    console.log('Clearing password reset state, returning to home');
+    console.log('Clearing password reset state, showing completion');
     setIsPasswordReset(false);
+    setPasswordResetComplete(true);
+  };
+
+  const setPasswordResetComplete = () => {
+    setIsPasswordResetComplete(true);
+  };
+
+  const clearPasswordResetComplete = () => {
+    console.log('Clearing password reset complete state, returning to login');
+    setIsPasswordResetComplete(false);
   };
 
   const value = {
@@ -116,8 +130,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     isSignupComplete,
     isPasswordReset,
+    isPasswordResetComplete,
     clearSignupComplete,
     clearPasswordReset,
+    setPasswordResetComplete,
+    clearPasswordResetComplete,
   };
 
   return (

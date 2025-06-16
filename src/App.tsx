@@ -6,6 +6,7 @@ import { EditTaskModal } from "./components/EditTaskModal";
 import { AuthForm } from "./components/AuthForm";
 import { SignupComplete } from "./components/SignupComplete";
 import { PasswordReset } from "./components/PasswordReset";
+import { PasswordResetComplete } from "./components/PasswordResetComplete";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useTasks } from "./hooks/useTasks";
 import type { Task } from "./types";
@@ -13,7 +14,7 @@ import "./App.css";
 
 function TodoApp() {
   // *** すべてのフックを最上部で呼ぶ（Reactのルール） ***
-  const { user, loading: authLoading, signOut, isSignupComplete, isPasswordReset, clearSignupComplete, clearPasswordReset } = useAuth();
+  const { user, loading: authLoading, signOut, isSignupComplete, isPasswordReset, isPasswordResetComplete, clearSignupComplete, clearPasswordReset, clearPasswordResetComplete } = useAuth();
   
   // useState フック
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -267,18 +268,21 @@ function TodoApp() {
     };
   }, [isDragging, draggedTask, isGroupDragging, draggedGroup, tasks, getTaskGroups, setError, fetchTasks, setTasks, reorderTasksInGroup, moveTaskToGroupPosition]);
 
-  // 認証中の表示
+  // 認証中は何も表示しない（読み込み画面削除）
   if (authLoading) {
+    return null;
+  }
+
+  // パスワードリセット完了画面（最優先）
+  if (isPasswordResetComplete) {
     return (
-      <div className="app">
-        <div className="loading">
-          読み込み中...
-        </div>
-      </div>
+      <PasswordResetComplete 
+        onComplete={clearPasswordResetComplete}
+      />
     );
   }
 
-  // パスワードリセット画面（最優先）
+  // パスワードリセット画面
   if (isPasswordReset && user) {
     return (
       <PasswordReset 
