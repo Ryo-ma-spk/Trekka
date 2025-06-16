@@ -17,12 +17,12 @@ export function useDragAndDrop() {
     currentPosition: null,
   });
 
-  const dragGhost = useRef<HTMLDivElement | null>(null);
-  const onDragStart = useRef<((data: any) => void) | null>(null);
-  const onDragEnd = useRef<((data: any, target: any) => void) | null>(null);
+  const dragGhost = useRef<HTMLElement | null>(null);
+  const onDragStart = useRef<((_data: any) => void) | null>(null);
+  const onDragEnd = useRef<((_data: any, _target: any) => void) | null>(null);
 
   // Ghost要素を作成
-  const createGhost = useCallback((element: HTMLElement, data: any) => {
+  const createGhost = useCallback((element: HTMLElement, _data: any) => {
     const ghost = element.cloneNode(true) as HTMLElement;
     ghost.style.position = 'fixed';
     ghost.style.top = '-1000px';
@@ -148,7 +148,6 @@ export function useDragAndDrop() {
     
     if (dropTarget) {
       const targetData = dropTarget.getAttribute('data-drop-target');
-      console.log('📍 Drop target found:', targetData);
       onDragEnd.current?.(dragState.draggedData, targetData);
     }
     
@@ -191,7 +190,6 @@ export function useDragAndDrop() {
     
     if (dropTarget) {
       const targetData = dropTarget.getAttribute('data-drop-target');
-      console.log('📍 Drop target found:', targetData);
       onDragEnd.current?.(dragState.draggedData, targetData);
     }
     

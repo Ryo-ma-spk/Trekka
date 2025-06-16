@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, Edit2, Check, X, Trash2, Plus, Calendar } from 'lucide-react';
+import { GripVertical, Edit2, Check, X, Trash2, Calendar } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { TaskCard } from './TaskCard';
@@ -31,19 +31,16 @@ export function TaskGroup({
   onDeleteTask, 
   onRenameGroup, 
   onDeleteGroup,
-  onAddTask,
   onCreateTaskDirect,
   onMouseDown,
   onGroupMouseDown,
   draggedTask,
   draggedGroup,
-  isDragging,
-  isGroupDragging,
   dropPreview 
 }: TaskGroupProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(group.label);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskStartDate, setNewTaskStartDate] = useState(new Date());
@@ -64,15 +61,6 @@ export function TaskGroup({
     setError('');
   };
 
-  const validateGroupName = (value: string, isForSave: boolean = false): string => {
-    if (isForSave && (!value || value.trim().length === 0)) {
-      return 'グループ名は必須です';
-    }
-    if (value.trim().length > GROUP_NAME_MAX_LENGTH) {
-      return `グループ名は${GROUP_NAME_MAX_LENGTH}文字以内で入力してください`;
-    }
-    return '';
-  };
 
   const handleEditSave = () => {
     const trimmedValue = editValue.trim();

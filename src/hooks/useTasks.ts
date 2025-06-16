@@ -64,7 +64,7 @@ export function useTasks() {
         setGroupOrder(labels);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       // Loading state removed
     }
@@ -75,7 +75,7 @@ export function useTasks() {
 
     try {
       // user_id列とposition列の存在チェック
-      const { data: sampleData, error: checkError } = await supabase
+      const { error: checkError } = await supabase
         .from('tasks')
         .select('position, user_id')
         .limit(1);
@@ -155,7 +155,7 @@ export function useTasks() {
 
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create tasks');
+      setError(err instanceof Error ? err.message : 'タスクの作成に失敗しました');
     }
   };
 
@@ -170,7 +170,7 @@ export function useTasks() {
 
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update task');
+      setError(err instanceof Error ? err.message : 'タスクの更新に失敗しました');
     }
   };
 
@@ -185,7 +185,7 @@ export function useTasks() {
 
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update task label');
+      setError(err instanceof Error ? err.message : 'タスクラベルの更新に失敗しました');
     }
   };
 
@@ -211,12 +211,12 @@ export function useTasks() {
         throw error;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update task label');
+      setError(err instanceof Error ? err.message : 'タスクラベルの更新に失敗しました');
       throw err;
     }
   };
 
-  const moveTaskToPosition = async (taskId: string, newLabel: string, targetIndex?: number) => {
+  const moveTaskToPosition = async (taskId: string, newLabel: string, _targetIndex?: number) => {
     try {
       // ラベルを更新
       const { error } = await supabase
@@ -231,7 +231,7 @@ export function useTasks() {
       
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to move task');
+      setError(err instanceof Error ? err.message : 'タスクの移動に失敗しました');
       throw err;
     }
   };
@@ -247,7 +247,7 @@ export function useTasks() {
 
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
+      setError(err instanceof Error ? err.message : 'タスクの削除に失敗しました');
     }
   };
 
@@ -304,7 +304,7 @@ export function useTasks() {
         await fetchTasks();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to rename label');
+      setError(err instanceof Error ? err.message : 'ラベルの名前変更に失敗しました');
       throw err;
     }
   };
@@ -337,7 +337,7 @@ export function useTasks() {
       // タスクリストを更新
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete label');
+      setError(err instanceof Error ? err.message : 'ラベルの削除に失敗しました');
       throw err;
     }
   };
@@ -372,10 +372,10 @@ export function useTasks() {
   };
 
   // タスクの並び替え機能
-  const reorderTasksInGroup = async (label: string, taskIds: string[]) => {
+  const reorderTasksInGroup = async (_label: string, taskIds: string[]) => {
     try {
       // position列が存在するかチェック
-      const { data: sampleData, error: checkError } = await supabase
+      const { error: checkError } = await supabase
         .from('tasks')
         .select('position')
         .limit(1);
@@ -396,7 +396,7 @@ export function useTasks() {
       await Promise.all(updates);
       await fetchTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reorder tasks');
+      setError(err instanceof Error ? err.message : 'タスクの並び替えに失敗しました');
       throw err;
     }
   };
@@ -406,7 +406,7 @@ export function useTasks() {
     // 1. 即座にローカル状態を更新
     const taskToMove = tasks.find(t => t.id === taskId);
     if (!taskToMove) {
-      throw new Error('Task not found');
+      throw new Error('タスクが見つかりません');
     }
 
     const targetGroupTasks = tasks.filter(task => task.label === targetLabel && task.id !== taskId);
@@ -431,7 +431,7 @@ export function useTasks() {
     // 2. バックグラウンドでデータベース更新
     try {
       // position列が存在するかチェック
-      const { data: sampleData, error: checkError } = await supabase
+      const { error: checkError } = await supabase
         .from('tasks')
         .select('position')
         .limit(1);
@@ -464,7 +464,7 @@ export function useTasks() {
         // 他のタスクのposition値も更新
         const updates = updatedTargetTasksWithPosition
           .filter(t => t.id !== taskId)
-          .map((task, index) => 
+          .map((task) => 
             supabase
               .from('tasks')
               .update({ position: task.position })
@@ -476,7 +476,7 @@ export function useTasks() {
     } catch (err) {
       // エラー時は元に戻す
       await fetchTasks();
-      setError(err instanceof Error ? err.message : 'Failed to move task');
+      setError(err instanceof Error ? err.message : 'タスクの移動に失敗しました');
       throw err;
     }
   };

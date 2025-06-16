@@ -4,7 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error('Supabase環境変数が設定されていません');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -41,9 +41,6 @@ export const resetPasswordForEmail = async (email: string) => {
   localStorage.setItem('auth_trigger', 'password_reset');
   
   return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}?reset=true`,
-    data: {
-      locale: 'ja'
-    }
+    redirectTo: `${window.location.origin}?reset=true`
   });
 };

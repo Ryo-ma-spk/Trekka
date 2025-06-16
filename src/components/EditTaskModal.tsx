@@ -81,7 +81,7 @@ export function EditTaskModal({ isOpen, task, onClose, onSave, availableLabels =
           setStartDate(new Date(startFormatted));
           setEndDate(new Date(endFormatted));
         } catch (error) {
-          console.error('Date parsing error:', error);
+          // 日付解析エラー（デフォルト値を設定）
           setStartDate(new Date());
           setEndDate(new Date());
         }

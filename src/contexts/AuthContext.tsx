@@ -34,7 +34,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // URLパラメータからパスワードリセット状態を検出（パスワードリセットリンクからの場合のみ）
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('reset') === 'true') {
-      console.log('Password reset URL detected, setting trigger');
       localStorage.setItem('auth_trigger', 'password_reset');
       // URLパラメータをクリア
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -45,13 +44,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Error getting session:', error);
+          // セッション取得エラー（プロダクション環境では無視）
         } else {
           setSession(session);
           setUser(session?.user || null);
         }
       } catch (error) {
-        console.error('Error in getSession:', error);
+        // セッション取得中にエラーが発生（プロダクション環境では無視）
       } finally {
         setLoading(false);
       }
@@ -62,23 +61,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
-        
         if (event === 'SIGNED_IN' && session?.user) {
           // localStorageからトリガー情報を取得
           const authTrigger = localStorage.getItem('auth_trigger');
-          console.log('Auth state change - event:', event, 'trigger:', authTrigger);
           
           // URLパラメータも確認
           const urlParams = new URLSearchParams(window.location.search);
           const isResetUrl = urlParams.get('reset') === 'true';
           
           if (authTrigger === 'signup' && !isResetUrl) {
-            console.log('Showing signup complete');
             setIsSignupComplete(true);
             localStorage.removeItem('auth_trigger');
           } else if (authTrigger === 'password_reset' || isResetUrl) {
-            console.log('Showing password reset');
             setIsPasswordReset(true);
             localStorage.removeItem('auth_trigger');
           }
@@ -97,10 +91,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Error signing out:', error);
+        // サインアウトエラー（プロダクション環境では無視）
       }
     } catch (error) {
-      console.error('Error in signOut:', error);
+      // サインアウト中にエラーが発生（プロダクション環境では無視）
     }
   };
 
@@ -109,9 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const clearPasswordReset = () => {
-    console.log('Clearing password reset state, showing completion');
     setIsPasswordReset(false);
-    setPasswordResetComplete(true);
+    setPasswordResetComplete();
   };
 
   const setPasswordResetComplete = () => {
@@ -119,7 +112,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const clearPasswordResetComplete = () => {
-    console.log('Clearing password reset complete state, returning to login');
     setIsPasswordResetComplete(false);
   };
 
@@ -147,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuthはAuthProvider内で使用してください');
   }
   return context;
 }
