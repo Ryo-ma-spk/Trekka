@@ -37,6 +37,9 @@ export const signUpWithEmail = async (email: string, password: string) => {
 
 // パスワードリセット時の日本語メール設定
 export const resetPasswordForEmail = async (email: string) => {
+  // パスワードリセットトリガーを事前に設定
+  localStorage.setItem('auth_trigger', 'password_reset');
+  
   return await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}?reset=true`,
     data: {

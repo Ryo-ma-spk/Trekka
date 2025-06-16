@@ -20,6 +20,14 @@ export function AuthForm() {
         if (buttonText.includes('パスワードリセット') || buttonText.includes('送信') || buttonText.includes('reset')) {
           localStorage.setItem('auth_trigger', 'password_reset');
           console.log('Set trigger: password_reset');
+          
+          // パスワードリセット用のリダイレクトURLを一時的に設定
+          setTimeout(() => {
+            const authContainer = document.querySelector('[data-supabase-auth-ui]');
+            if (authContainer) {
+              // Supabase Auth UIの設定を動的に変更（技術的には難しいため、別のアプローチを使用）
+            }
+          }, 100);
         }
         // アカウント作成判定
         else if (buttonText.includes('アカウント作成') || buttonText.includes('sign up') || buttonText.includes('作成')) {
@@ -94,7 +102,7 @@ export function AuthForm() {
             }
           }}
           providers={[]}
-          redirectTo={`${window.location.origin}?reset=true`}
+          redirectTo={`${window.location.origin}`}
           // 開発環境ではメール確認をスキップ
           skipConfirmation={import.meta.env.DEV}
           onlyThirdPartyProviders={false}

@@ -27,9 +27,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
-    // URLパラメータからパスワードリセット状態を検出
+    // URLパラメータからパスワードリセット状態を検出（パスワードリセットリンクからの場合のみ）
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('reset') === 'true') {
+      console.log('Password reset URL detected, setting trigger');
       localStorage.setItem('auth_trigger', 'password_reset');
       // URLパラメータをクリア
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -62,12 +63,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (event === 'SIGNED_IN' && session?.user) {
           // localStorageからトリガー情報を取得
           const authTrigger = localStorage.getItem('auth_trigger');
-          console.log('Auth trigger:', authTrigger);
+          console.log('Auth state change - event:', event, 'trigger:', authTrigger);
           
-          if (authTrigger === 'signup') {
+          // URLパラメータも確認
+          const urlParams = new URLSearchParams(window.location.search);
+          const isResetUrl = urlParams.get('reset') === 'true';
+          
+          if (authTrigger === 'signup' && !isResetUrl) {
+            console.log('Showing signup complete');
             setIsSignupComplete(true);
             localStorage.removeItem('auth_trigger');
-          } else if (authTrigger === 'password_reset') {
+          } else if (authTrigger === 'password_reset' || isResetUrl) {
+            console.log('Showing password reset');
             setIsPasswordReset(true);
             localStorage.removeItem('auth_trigger');
           }
