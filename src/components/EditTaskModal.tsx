@@ -202,7 +202,13 @@ export function EditTaskModal({ isOpen, task, onClose, onSave, availableLabels =
                       <label>開始日</label>
                       <DatePicker
                         selected={startDate}
-                        onChange={setStartDate}
+                        onChange={(date) => {
+                          setStartDate(date);
+                          // 開始日が終了日より後の場合、終了日を開始日に合わせる
+                          if (date && endDate && date > endDate) {
+                            setEndDate(date);
+                          }
+                        }}
                         selectsStart
                         startDate={startDate}
                         endDate={endDate}

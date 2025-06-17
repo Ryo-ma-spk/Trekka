@@ -98,6 +98,10 @@ export function TaskModal({ isOpen, onClose, onSubmit, defaultLabel = '', availa
       }));
     } else if (field === 'startDate') {
       setCommonStartDate(value);
+      // 開始日が終了日より後の場合、終了日を開始日に合わせる
+      if (value && commonEndDate && value > commonEndDate) {
+        setCommonEndDate(value);
+      }
     } else if (field === 'endDate') {
       setCommonEndDate(value);
     }
